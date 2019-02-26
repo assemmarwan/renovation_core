@@ -1,0 +1,21 @@
+{
+ "creation": "2019-01-24 18:49:05.739884", 
+ "docstatus": 0, 
+ "doctype": "Renovation Dashboard", 
+ "enable": 1, 
+ "exc_type": "cmd", 
+ "idx": 0, 
+ "is_standard": "Yes", 
+ "modified": "2019-01-24 18:49:40.081076", 
+ "modified_by": "Administrator", 
+ "name": "Lead by Source", 
+ "owner": "Administrator", 
+ "parms": [], 
+ "roles": [
+  {
+   "role": "Accounts Manager"
+  }
+ ], 
+ "title": "Lead by Source", 
+ "type": "pie"
+}

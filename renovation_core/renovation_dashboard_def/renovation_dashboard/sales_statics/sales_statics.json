@@ -1,0 +1,18 @@
+{
+ "creation": "2019-01-24 14:33:44.272979", 
+ "docstatus": 0, 
+ "doctype": "Renovation Dashboard", 
+ "enable": 1, 
+ "exc_type": "cmd", 
+ "idx": 0, 
+ "is_standard": "Yes", 
+ "modified": "2019-01-24 15:09:13.303637", 
+ "modified_by": "Administrator", 
+ "name": "Sales Statics", 
+ "owner": "Administrator", 
+ "parms": [], 
+ "roles": [], 
+ "subtitle": "Total Sales Report", 
+ "title": "Sales Statics", 
+ "type": "bar"
+}

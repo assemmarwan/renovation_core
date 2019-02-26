@@ -1,0 +1,22 @@
+{
+ "creation": "2019-01-24 17:16:05.491362", 
+ "docstatus": 0, 
+ "doctype": "Renovation Dashboard", 
+ "enable": 1, 
+ "exc_type": "cmd", 
+ "idx": 0, 
+ "is_standard": "Yes", 
+ "modified": "2019-01-24 17:16:34.415492", 
+ "modified_by": "Administrator", 
+ "name": "Invoice Status", 
+ "owner": "Administrator", 
+ "parms": [], 
+ "roles": [
+  {
+   "role": "Accounts Manager"
+  }
+ ], 
+ "subtitle": "A Pie Chart Example", 
+ "title": "Invoice Status", 
+ "type": "pie"
+}
