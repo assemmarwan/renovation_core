@@ -14,6 +14,17 @@ app_license = "MIT"
 # Includes in <head>
 # ------------------
 
+fixtures = [
+    {
+		"dt": "Custom Field",
+		"filters": [["app_name", "=", "renovation_core"]]
+    },
+    {
+		"dt": "Property Setter",
+		"filters": [["app_name", "=", "renovation_core"]]
+    }
+]
+
 # include js, css files in header of desk.html
 # app_include_css = "/assets/renovation_core/css/renovation_core.css"
 # app_include_js = "/assets/renovation_core/js/renovation_core.js"
@@ -55,7 +66,7 @@ app_license = "MIT"
 # ------------
 
 # before_install = "renovation_core.install.before_install"
-# after_install = "renovation_core.install.after_install"
+after_install = "renovation_core.install.after_install.after_install"
 
 # Desk Notifications
 # ------------------
