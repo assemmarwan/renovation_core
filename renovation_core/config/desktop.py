@@ -10,5 +10,12 @@ def get_data():
 			"icon": "octicon octicon-plug",
 			"type": "module",
 			"label": _("Renovation Core")
+		},
+		{
+			"module_name": "Renovation Dashboard Def",
+			"color": "green",
+			"icon": "octicon octicon-dashboard",
+			"type": "module",
+			"label": _("Renovation Dashboard")
 		}
 	]
