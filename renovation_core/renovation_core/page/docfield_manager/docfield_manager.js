@@ -147,7 +147,7 @@ class DocFieldManager {
 		const options = fields
 			.map(df => {
 				return {
-					label: df.label,
+					label: df.label + ' <strong>('+ (df.fieldtype || "") +')</strong>',
 					value: df.fieldname,
 					danger: df.reqd,
 					checked: values.includes(df.fieldname)
