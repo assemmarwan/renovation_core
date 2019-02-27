@@ -1,21 +1,32 @@
 import frappe
 from frappe.utils import cint
 from renovation_core.renovation_core.doctype.renovation_docfield.renovation_docfield import toggle_enabled as enable_field
+import json
+from six import string_types
+
 
 @frappe.whitelist()
-def get_doctype_fields(doctype):
-	fields_enabled_dict = frappe._dict()
-	fields = frappe.get_all("Renovation DocField", fields=["fieldname", "renovation_enabled"], filters={"p_doctype": doctype})
-	for field in fields:
-		fields_enabled_dict[field.fieldname] = field.renovation_enabled
-	
-	# going by meta because that way it comes in order it is viewed
-	doctype_meta = frappe.get_meta(doctype)
-	return {
-		"enabled_dict": fields_enabled_dict,
-		"meta_fields": doctype_meta.fields
+def get_selected_values(doctype):
+	meta = frappe.get_meta(doctype)
+	doctypes = [x.options for x in meta.fields if x.get('fieldtype')=="Table"]
+	doctypes.append(doctype)
+	values = {}
+	for d in frappe.get_all("Renovation DocField", {"renovation_enabled":1, 'p_doctype': ('in', doctypes)}, ['p_doctype' ,'fieldname']):
+		row = values.setdefault(d.p_doctype, [])
+		row.append(d.fieldname)
+	return values
+
+
+@frappe.whitelist()
+def update_vaoues(values):
+	if isinstance(values, string_types):
+		values = json.loads(values)
+	toggler = {
+		"selected_values": 1,
+		"unselected_values":0
 	}
-
-@frappe.whitelist()
-def toggle_enabled(doctype, fieldname, enabled=0):
-	enable_field(doctype, fieldname, cint(enabled or "0"))
+	for key, val in toggler.items():
+		for doctype, fields in values.get(key, {}).items():
+			for fieldname in fields or []:
+				enable_field(doctype, fieldname, val)
+	return
