@@ -17,5 +17,12 @@ def get_data():
 			"icon": "octicon octicon-dashboard",
 			"type": "module",
 			"label": _("Renovation Dashboard")
+		},
+		{
+			"module_name": "Renovation Setup",
+			"color": "green",
+			"icon": "octicon octicon-settings",
+			"type": "module",
+			"label": _("Renovation Setup")
 		}
 	]
