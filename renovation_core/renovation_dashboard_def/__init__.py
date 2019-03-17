@@ -1,1 +1,1 @@
-from utils import get_all_dashboards, get_dashboard
+from .utils import get_all_dashboards, get_dashboard
