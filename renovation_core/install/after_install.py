@@ -12,8 +12,7 @@ def make_app_field_in_custom_field_and_property_setter():
             "fieldtype": "Data",
             "insert_after": "dt",
             "print_hide": 1,
-            "options": "",
-            "default": "renovation_core"
+            "options": ""
         },
         "Property Setter": {
             "fieldname": "app_name",
@@ -21,7 +20,6 @@ def make_app_field_in_custom_field_and_property_setter():
             "fieldtype": "Data",
             "insert_after": "doc_type",
             "print_hide": 1,
-            "options": "",
-            "default": "renovation_core"
+            "options": ""
         }
     })
