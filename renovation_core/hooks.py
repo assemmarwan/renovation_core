@@ -90,13 +90,11 @@ after_install = "renovation_core.install.after_install.after_install"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-#	}
-# }
+doc_events = {
+	("Sales Invoice", "Sales Order", "Delivery Note"): {
+		"validate": "renovation_core.doc_events.invoice.validate"
+	}
+}
 
 # Scheduled Tasks
 # ---------------
