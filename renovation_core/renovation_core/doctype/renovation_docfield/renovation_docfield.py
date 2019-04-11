@@ -5,14 +5,11 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-# ToDo Should be remove
-from renovation_erpnext.api.meta import clear_meta_cache
 from six import string_types
 import ast
 
 
 class RenovationDocField(Document):
-
     def validate(self):
         if not frappe.get_meta(self.p_doctype).has_field(self.fieldname):
             frappe.throw("Field '{}' not present in parent '{}' DocType".format(self.fieldname, self.p_doctype))
@@ -21,11 +18,7 @@ class RenovationDocField(Document):
         self.name = self.p_doctype + "-" + self.fieldname
 
 
-def toggle_enabled(doctype, fieldname, enabled=0):
-    # clear cache first
-    # ToDo Should be remove
-    clear_meta_cache(doctype)
-    
+def toggle_enabled(doctype, fieldname, enabled=0):    
     # get doc 
     existing = frappe.get_list("Renovation DocField", filters={
         "p_doctype": doctype,
