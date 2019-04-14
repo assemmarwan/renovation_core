@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-from frappe.modules.utils import export_module_json, get_doctype_module
+from frappe.modules.utils import export_module_json
 import os
 from frappe import scrub
 
@@ -16,7 +16,7 @@ class RenovationDashboard(Document):
 			self.name = self.title
 
 	def on_update(self):
-		path = export_module_json(self, self.is_standard, get_doctype_module(self.doctype))
+		path = export_module_json(self, self.is_standard, self.module)
 		if path:
 			# py
 			if not os.path.exists(path + '.py'):
@@ -53,7 +53,7 @@ def get_context(**kwargs):
 	def ready_chart_data(self, **kwargs):
 		cmd = self.cmd
 		if (self.exc_type == "cmd" and not cmd) or not self.eval:
-			cmd = os.path.join("{}.{}.{}.{}.{}".format(frappe.get_module_path(get_doctype_module(self.doctype)), scrub(self.doctype),
+			cmd = os.path.join("{}.{}.{}.{}.{}".format(frappe.get_module_path(scrub(self.module)), scrub(self.doctype),
 			scrub(self.name), scrub(self.name), 'get_context'))
 			cmd = '.'.join(cmd.split('/')[-2:])
 		if self.exc_type == "eval" and not self.eval:
