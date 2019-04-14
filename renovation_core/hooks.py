@@ -125,7 +125,7 @@ doc_events = {
 # Overriding Whitelisted Methods
 # ------------------------------
 #
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "renovation_core.event.get_events"
-# }
+override_whitelisted_methods = {
+	"renovation": "renovation_core.handler.handler",
+}
 

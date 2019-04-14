@@ -7,6 +7,7 @@ import frappe
 from frappe.model.document import Document
 from six import string_types
 import ast
+from renovation_core.utils.meta import clear_meta_cache
 
 
 class RenovationDocField(Document):
@@ -18,7 +19,8 @@ class RenovationDocField(Document):
         self.name = self.p_doctype + "-" + self.fieldname
 
 
-def toggle_enabled(doctype, fieldname, enabled=0):    
+def toggle_enabled(doctype, fieldname, enabled=0):
+    clear_meta_cache(doctype)
     # get doc 
     existing = frappe.get_list("Renovation DocField", filters={
         "p_doctype": doctype,

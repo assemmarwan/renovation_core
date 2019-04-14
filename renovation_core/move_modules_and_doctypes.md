@@ -27,6 +27,10 @@
 - Renovation POS Option -> POS
 
 ---
+r_erpnext->api->meta => core->utils->meta
+r_erpnext->api->auth => core->utils->auth
+
+---
 ---
 
 
