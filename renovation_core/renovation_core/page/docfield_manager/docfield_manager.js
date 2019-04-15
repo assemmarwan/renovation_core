@@ -76,7 +76,7 @@ class DocFieldManager {
 					doctype: this.doctype
 				},
 				callback: r => {
-					if (!r.xhr) {
+					if (r['message']) {
 						this.multicheck_selected = r.message
 					}
 					this.set_field_options()
