@@ -2,11 +2,11 @@ import re
 
 import frappe
 # erpnext will be updated to py3, if done the otherway, this will break
-from renovation_core.utils.doc import doc_handler
-from renovation_core.utils.meta import get_meta
-from renovation_core.utils.report import get_report
-from renovation_core.utils.auth import generate_sms_pin, verify_sms_pin
-from renovation_core.utils import get_request_method, get_request_path, update_http_response
+from .utils.doc import doc_handler
+from .utils.meta import get_meta
+from .utils.report import get_report
+from .utils.auth import generate_sms_pin, verify_sms_pin
+from .utils import get_request_method, get_request_path, update_http_response
 # api generals are handled here
 # this file will be the interface to the frappe system
 # if frappe system was to make changes in the future, we will have to update it here only
