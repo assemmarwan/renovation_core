@@ -4,40 +4,6 @@ from frappe.desk.form.load import get_meta_bundle
 
 from renovation_core.utils import update_http_response, get_request_body
 
-"""
-/renovation/get_meta
-DEPRECATED
-
-"""
-def get_meta(doctype):
-	
-	meta_obj = frappe.cache().hget("renovation_docmeta", doctype)
-	if not meta_obj:
-		meta = frappe.get_meta(doctype)
-		fields = []
-		
-		enabled_fields = [x.fieldname for x in frappe.get_all("Renovation DocField", fields='fieldname', filters={"renovation_enabled": 1, "p_doctype": doctype})]
-		
-		fields = [x for x in meta.fields if x.get('fieldname') in enabled_fields]
-		# for field in meta.get("fields"):
-		# 	if len(filter(lambda x: x.fieldname == field.fieldname, enabled_fields)) > 0:
-		# 		fields.append(field)
-		
-		
-		meta_obj = {
-			"doctype": doctype,
-			"title_field": meta.get_title_field(),
-			"list_fields": meta.get_list_fields(),
-			"image_field": meta.image_field,
-			"is_submittable": meta.is_submittable,
-			"fields": fields,
-			"meta_bundle": get_meta_bundle(doctype)
-		}
-		
-		frappe.cache().hset("renovation_docmeta", doctype, meta_obj)
-	
-	update_http_response({"data": frappe._dict(meta_obj), "status": "success"})
-
 @frappe.whitelist(allow_guest=True)
 def get_bundle(doctype):
 	bundle_obj = frappe.cache().hget("renovation_doc_bundle", doctype)
@@ -50,13 +16,14 @@ def get_bundle(doctype):
 		# update renovation_enabled
 		for meta in get_meta_bundle(doctype):
 			enabled_fields = frappe.get_all("Renovation DocField", fields=["fieldname"], filters={"renovation_enabled": 1, "p_doctype": meta.name})
-			meta = meta.as_dict()
+			meta = frappe._dict(meta.as_dict())
 			# renovation-core takes 1 as true since all other db-Check types are 0/1
 			meta.treeview = 1 if meta.name in frappe.get_hooks("treeviews") else 0
 			
 			fields = []
 			_fields = []
 			for field in meta.get("fields"):
+				field = frappe._dict(field)
 				if len(filter(lambda x: x.fieldname == field.fieldname, enabled_fields)) > 0:
 					fields.append(field)
 				else:
