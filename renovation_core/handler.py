@@ -3,7 +3,6 @@ import re
 import frappe
 # erpnext will be updated to py3, if done the otherway, this will break
 from .utils.doc import doc_handler
-from .utils.meta import get_meta
 from .utils.report import get_report
 from .utils.auth import generate_sms_pin, verify_sms_pin
 from .utils import get_request_method, get_request_path, update_http_response
@@ -18,8 +17,6 @@ def handler():
 	request_method = get_request_method()
 	if request_parts[3] == "doc":
 		doc_handler(request_method, request_parts[4], '/'.join(request_parts[5:]))
-	elif request_parts[3] == "get_meta":
-		get_meta(request_parts[4])
 	elif request_parts[3] == "session":
 		get_session()
 	elif request_parts[3] == "report":

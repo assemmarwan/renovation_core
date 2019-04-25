@@ -23,8 +23,7 @@ def get_bundle(doctype):
 			fields = []
 			_fields = []
 			for field in meta.get("fields"):
-				field = frappe._dict(field)
-				if len(filter(lambda x: x.fieldname == field.fieldname, enabled_fields)) > 0:
+				if len(filter(lambda x: x.fieldname == field.get("fieldname"), enabled_fields)) > 0:
 					fields.append(field)
 				else:
 					_fields.append(field)
