@@ -18,7 +18,7 @@ def get_selected_values(doctype):
 
 
 @frappe.whitelist()
-def update_vaoues(values):
+def update_values(values):
 	if isinstance(values, string_types):
 		values = json.loads(values)
 	toggler = {

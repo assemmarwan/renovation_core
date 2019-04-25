@@ -53,7 +53,7 @@ class DocFieldManager {
 			"unselected_values": unchecked_values
 		}
 		frappe.call({
-			method: 'renovation_core.renovation_core.page.docfield_manager.docfield_manager.update_vaoues',
+			method: 'renovation_core.renovation_core.page.docfield_manager.docfield_manager.update_values',
 			args: {
 				values: args
 			},
@@ -149,7 +149,7 @@ class DocFieldManager {
 				return {
 					label: df.label + ' <strong>('+ (df.fieldtype || "") +')</strong>',
 					value: df.fieldname,
-					danger: df.reqd,
+					danger: df.reqd || df.fieldtype==="Table",
 					checked: values.includes(df.fieldname)
 				};
 			});
@@ -171,7 +171,7 @@ class DocFieldManager {
 		return multicheck_control;
 	}
 	filter_fields(df) {
-		return frappe.model.is_value_type(df) && !df.hidden
+		return (frappe.model.is_value_type(df) || df.fieldtype==="Table") && !df.hidden
 	}
 	get_fields(dt) {
 		return frappe.meta.get_docfields(dt).filter(this.filter_fields)
