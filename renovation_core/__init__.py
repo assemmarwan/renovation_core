@@ -12,7 +12,7 @@ frappe.model.sync.get_doc_files = _get_doc_files
 
 
 def clear_cache():
-  from renovation_core.utils.meta import clear_all_meta_cache
+  from .utils.meta import clear_all_meta_cache
   clear_all_meta_cache()
 
 
