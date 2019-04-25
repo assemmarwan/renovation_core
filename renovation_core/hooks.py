@@ -11,6 +11,9 @@ app_color = "green"
 app_email = "mainul.islam@leam.ae"
 app_license = "MIT"
 
+clear_cache = "renovation_core.clear_cache"
+on_login = "renovation_core.on_login"
+
 # Includes in <head>
 # ------------------
 
@@ -126,6 +129,7 @@ after_install = "renovation_core.install.after_install.after_install"
 # ------------------------------
 #
 override_whitelisted_methods = {
+	"frappe.auth.get_logged_user": "renovation_core.get_logged_user",
 	"renovation": "renovation_core.handler.handler",
 }
 
