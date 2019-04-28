@@ -21,7 +21,7 @@ def generate_sms_pin():
 		# save in User doc if mobile linked to any User
 		user = get_linked_user(mobile)
 		if user:
-			frappe.db.set_value("User", user, "renovation_sms_pin", pin)
+			frappe.db.set_value("User", user, "renovation_sms_pin", pin, update_modified=False)
 	
 	msg = "Your verification PIN is: " + pin
 	send_sms([mobile], msg, success_msg = False)
