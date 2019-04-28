@@ -25,9 +25,14 @@ def on_login(login_manager):
 
 
 def append_user_info_to_response(user):
-  # send back user
-  frappe.local.response["user"] = user
-  frappe.local.response["has_quick_login_pin"] = frappe.db.get_value("User", "administrator", "quick_login_pin") != None
+  user_details = frappe.db.get_value("User", user, ["name", "full_name", "quick_login_pin"])
+  frappe.local.response = frappe._dict({
+    "user": user,
+    "message": "Logged In",
+    "home_page": "/desk",
+    "full_name": user_details[1],
+    "has_quick_login_pin": user_details[2] != None
+  })
 
   for method in frappe.get_hooks().get("renovation_login_response", []):
     frappe.call(frappe.get_attr(method), user=user)
@@ -35,5 +40,4 @@ def append_user_info_to_response(user):
 @frappe.whitelist()
 def get_logged_user():
   user = frappe.session.user
-  frappe.local.response["message"] = user # backward compatibility
   append_user_info_to_response(user)
