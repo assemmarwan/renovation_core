@@ -1,6 +1,7 @@
 import re
 
 import frappe
+from frappe.handler import uploadfile as uf
 # erpnext will be updated to py3, if done the otherway, this will break
 from .utils.doc import doc_handler
 from .utils.report import get_report
@@ -42,3 +43,18 @@ def get_session():
 	except Exception:
 		update_http_response({"status": "failed"})
 		print(frappe.get_traceback())
+
+
+@frappe.whitelist(allow_guest=True)
+def uploadfile():
+	ret =  uf()
+
+	form = frappe.form_dict
+	if ret.get("file_url", None) and form and form.get("doctype", None) and form.get("docname") and form.get("docfield", None):
+		# fill the field
+		dt = form.get("doctype")
+		dn = form.get("docname")
+		df = form.get("docfield")
+		if frappe.db.get_value(dt, dn):
+			frappe.db.set_value(dt, dn, df, ret.get("file_url"))
+	return ret
