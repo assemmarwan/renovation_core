@@ -6,7 +6,7 @@ def _get_doc_files(files, start_path, force=0, sync_everything = False, verbose=
     # load in sequence - warning for devs
     document_types = ['doctype', 'page', 'report', 'print_format',
         'website_theme', 'web_form', 'email_alert', 'print_style',
-         'data_migration_mapping', 'data_migration_plan', 'renovation_dashboard']
+         'data_migration_mapping', 'data_migration_plan', 'renovation_dashboard', 'notification']
     for doctype in document_types:
         doctype_path = os.path.join(start_path, doctype)
         if os.path.exists(doctype_path):
