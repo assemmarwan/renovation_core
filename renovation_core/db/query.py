@@ -1,4 +1,4 @@
-import frappe
+import frappe, json
 
 @frappe.whitelist(allow_guest=True)
 def get_list_with_child(doctype, *args, **kwargs):
@@ -32,6 +32,9 @@ def get_list_with_child(doctype, *args, **kwargs):
 			kwargs["fields"] = kwargs["fields"] + ", name"
 
 		table_fields = kwargs["table_fields"]
+		if isinstance(table_fields, basestring):
+			table_fields = json.loads(table_fields)
+
 		del kwargs["table_fields"]
 
 		ret = []
