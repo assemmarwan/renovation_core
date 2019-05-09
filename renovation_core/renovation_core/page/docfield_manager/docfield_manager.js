@@ -18,6 +18,7 @@ class DocFieldManager {
 		this.multicheck_selected = {};
 		this.doctypes_fields = {};
 		this.values = {};
+		this.user = null
 		this.make()
 	}
 
@@ -42,7 +43,9 @@ class DocFieldManager {
 			} // to have proper this in ondoctype_changed()
 		})
 		this.$multicheckWrapper = $(`<div class="col-xs-12">`).appendTo(this.page.page_form)
-		this.page.set_primary_action(__("Update"), () => { this.update_data() })
+		this.page.set_primary_action(__("Update"), () => {
+			this.update_data()
+		})
 	}
 
 	update_data() {
@@ -70,29 +73,37 @@ class DocFieldManager {
 			},
 			callback: r => {
 				if (!r.xhr) {
-					frappe.show_alert({ body: __("Successfully Updated"), indicator: 'green' })
+					frappe.show_alert({
+						body: __("Successfully Updated"),
+						indicator: 'green'
+					})
 				}
 			}
 		})
 	}
 
 	ondoctype_changed() {
-		if (!this.page.fields_dict['doctype'].value || this.page.fields_dict['doctype'].value === this.doctype) { return; }
+		if (!this.page.fields_dict['doctype'].value || (this.page.fields_dict['doctype'].value === this.doctype &&
+				this.page.fields_dict['user'].value === this.user)) {
+			return;
+		}
 		this.doctype = this.page.fields_dict['doctype'].value;
-		frappe.model.with_doctype(this.doctype, list => {
-			this.meta = frappe.get_meta(this.doctype)
-			frappe.call({
-				method: "renovation_core.renovation_core.page.docfield_manager.docfield_manager.get_selected_values",
-				args: {
-					doctype: this.doctype
-				},
-				callback: r => {
-					if (r['message']) {
-						this.multicheck_selected = r.message
-					}
-					this.set_field_options()
+		this.user = this.page.fields_dict['user'].value
+		frappe.call({
+			method: "renovation_core.renovation_core.page.docfield_manager.docfield_manager.get_docfield_and_selected_val",
+			args: {
+				doctype: this.doctype,
+				user: this.user
+			},
+			freeze: true,
+			freeze_message: __("Fetching Data"),
+			callback: r => {
+				if (r['message']) {
+					this.multicheck_selected = r.message.selected_values
+					this.doctypes_fields = r.message.doctypes_fields
 				}
-			})
+				this.set_field_options()
+			}
 		})
 	}
 
@@ -131,9 +142,12 @@ class DocFieldManager {
 		});
 
 		$(button_container).find('.frappe-control').map((index, button) => {
-			$(button).css({ "margin-right": "1em" });
+			$(button).css({
+				"margin-right": "1em"
+			});
 		});
 		let me = this
+
 		function checkbox_toggle(d) {
 			let checked = d === 'Unselect All';
 			let selector = `:checkbox`
@@ -146,8 +160,10 @@ class DocFieldManager {
 	}
 
 	get_doctypes(parentdt) {
+		if (!this.doctypes_fields)
+			return [parentdt];
 		return [parentdt].concat(
-			frappe.meta.get_table_fields(parentdt).map(df => df.options)
+			Object.keys(this.doctypes_fields)
 		);
 	}
 
@@ -158,9 +174,9 @@ class DocFieldManager {
 		const options = fields
 			.map(df => {
 				return {
-					label: (df.label || df.fieldname) + ' <strong>('+ (df.fieldtype || "") +')</strong>',
+					label: (df.label || df.fieldname) + ' <strong>(' + (df.fieldtype || "") + ')</strong>',
 					value: df.fieldname,
-					danger: df.reqd || df.fieldtype==="Table",
+					danger: df.reqd || df.fieldtype === "Table",
 					checked: values.includes(df.fieldname)
 				};
 			});
@@ -187,7 +203,7 @@ class DocFieldManager {
 	get_fields(dt) {
 		return this.get_docfields(dt).filter(this.filter_fields)
 	}
-	get_docfields (dt) {
+	get_docfields(dt) {
 		return this.doctypes_fields[dt] || []
 	}
 }
