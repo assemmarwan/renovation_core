@@ -16,6 +16,7 @@ class DocFieldManager {
 		this.page = wrapper.page
 		this.fields_multicheck = {};
 		this.multicheck_selected = {};
+		this.doctypes_fields = {};
 		this.values = {};
 		this.make()
 	}
@@ -26,6 +27,16 @@ class DocFieldManager {
 			fieldname: 'doctype',
 			fieldtype: 'Link',
 			options: 'DocType',
+			reqd: 1,
+			onchange: () => {
+				this.ondoctype_changed()
+			} // to have proper this in ondoctype_changed()
+		})
+		this.page.add_field({
+			label: 'User',
+			fieldname: 'user',
+			fieldtype: 'Link',
+			options: 'User',
 			onchange: () => {
 				this.ondoctype_changed()
 			} // to have proper this in ondoctype_changed()
@@ -174,6 +185,9 @@ class DocFieldManager {
 		return (frappe.model.is_value_type(df) || ["Table", "Section Break"].includes(df.fieldtype)) && !df.hidden
 	}
 	get_fields(dt) {
-		return frappe.meta.get_docfields(dt).filter(this.filter_fields)
+		return this.get_docfields(dt).filter(this.filter_fields)
+	}
+	get_docfields (dt) {
+		return this.doctypes_fields[dt] || []
 	}
 }
