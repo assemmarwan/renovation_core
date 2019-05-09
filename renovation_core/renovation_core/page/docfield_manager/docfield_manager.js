@@ -147,7 +147,7 @@ class DocFieldManager {
 		const options = fields
 			.map(df => {
 				return {
-					label: df.label + ' <strong>('+ (df.fieldtype || "") +')</strong>',
+					label: (df.label || df.fieldname) + ' <strong>('+ (df.fieldtype || "") +')</strong>',
 					value: df.fieldname,
 					danger: df.reqd || df.fieldtype==="Table",
 					checked: values.includes(df.fieldname)
@@ -171,7 +171,7 @@ class DocFieldManager {
 		return multicheck_control;
 	}
 	filter_fields(df) {
-		return (frappe.model.is_value_type(df) || df.fieldtype==="Table") && !df.hidden
+		return (frappe.model.is_value_type(df) || ["Table", "Section Break"].includes(df.fieldtype)) && !df.hidden
 	}
 	get_fields(dt) {
 		return frappe.meta.get_docfields(dt).filter(this.filter_fields)
