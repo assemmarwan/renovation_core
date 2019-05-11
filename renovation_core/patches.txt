@@ -1,1 +1,2 @@
 renovation_core.patches.make_renovaiton_docfield
+renovation_core.patches.v11_1.add_renovation_sidebar_root

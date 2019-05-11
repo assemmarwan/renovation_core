@@ -28,6 +28,8 @@ fixtures = [
     }
 ]
 
+treeviews = ["Renovation Sidebar"]
+
 # include js, css files in header of desk.html
 # app_include_css = "/assets/renovation_core/css/renovation_core.css"
 # app_include_js = "/assets/renovation_core/js/renovation_core.js"
