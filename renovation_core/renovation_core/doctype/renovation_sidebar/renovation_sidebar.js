@@ -2,6 +2,9 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Renovation Sidebar', {
+	setup: function(frm) {
+		frm.toggle_reqd('parent_renovation_sidebar', frm.doc.name !=="All Renovation Sidebar")
+	},
 	refresh: function (frm) {
 		frm.events.set_target_options(frm)
 	},

@@ -15,6 +15,7 @@ class RenovationSidebar(NestedSet):
 		self.name = self.renovation_sidebar_name if self.flags.ignore_mandatory else make_autoname('hash')
 	
 	def on_update(self):
+		super(RenovationSidebar, self).on_update()
 		keys = [self.get(self.nsm_parent_field), 'All Renovation Sidebar']
 		if self.is_group:
 			keys.append(self.name)
