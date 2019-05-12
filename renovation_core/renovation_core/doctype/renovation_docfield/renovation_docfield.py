@@ -56,7 +56,7 @@ def add_all_reqd_table_fields(doctypes=None):
     for i in range(0, len(doctypes), batch_size):
         for doctype in doctypes[i:i + batch_size]:
             meta = frappe.get_meta(doctype)
-            fields = [[f.fieldname, f.name]  for f in meta.get("fields") if f.fieldname and (f.reqd or f.fieldtype=="Table" or (meta.istable and f.in_list_view))]
+            fields = [[f.fieldname, f.name]  for f in meta.get("fields") if f.get('fieldname')]
             for field in fields:
                 if field[0] in existing_fields.get(doctype, []):
                     continue
