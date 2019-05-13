@@ -16,194 +16,301 @@ class DocFieldManager {
 		this.page = wrapper.page
 		this.fields_multicheck = {};
 		this.multicheck_selected = {};
+		this.doctypes_selected = {};
 		this.doctypes_fields = {};
 		this.values = {};
 		this.user = null
+		this.action_for = "Global"
+		this.c_form_layout_wrapper = $(`<div></div>`).appendTo(this.page.main)
 		this.make()
 	}
 
 	make() {
-		this.page.add_field({
-			label: 'DocType',
-			fieldname: 'doctype',
-			fieldtype: 'Link',
-			options: 'DocType',
-			reqd: 1,
-			onchange: () => {
-				this.ondoctype_changed()
-			} // to have proper this in ondoctype_changed()
+		let fields = [
+			{
+				label: 'DocType',
+				fieldname: 'doctype',
+				fieldtype: 'Link',
+				options: 'DocType',
+				reqd: 1,
+				onchange: () => {
+					this.ondoctype_changed()
+				}
+			},
+			{
+				label: 'Action',
+				fieldname: 'action_for',
+				fieldtype: 'Select',
+				options: 'Global\nUser\nRole Profile\nView',
+				onchange: () => {
+					this.toggle_optional_fields()
+				},
+				default:'Global'
+			},
+			{
+				label: 'User',
+				fieldname: 'user',
+				fieldtype: 'Link',
+				options: 'User',
+				onchange: () => {
+					this.ondoctype_changed()
+				}
+			},
+			{
+				label: 'Role Profile',
+				fieldname: 'role_profile',
+				fieldtype: 'Link',
+				options: 'Role Profile',
+				onchange: () => {
+					this.ondoctype_changed()
+				}
+			},
+			{
+				label: 'Field',
+				fieldname: 'doc_field',
+				fieldtype: 'Select',
+				options: '',
+				onchange: () => {
+					this.ondoctype_changed()
+				}
+			}
+		]
+		fields.forEach(field=>{
+			this.page.add_field(field)
 		})
-		this.page.add_field({
-			label: 'User',
-			fieldname: 'user',
-			fieldtype: 'Link',
-			options: 'User',
-			onchange: () => {
-				this.ondoctype_changed()
-			} // to have proper this in ondoctype_changed()
-		})
+		this.toggle_optional_fields()
 		this.$multicheckWrapper = $(`<div class="col-xs-12">`).appendTo(this.page.page_form)
 		this.page.set_primary_action(__("Update"), () => {
 			this.update_data()
 		})
 	}
+	toggle_optional_fields() {
+		this.action_for = this.page.fields_dict.action_for.value
+		$.each({'user': 'User', 'role_profile': 'Role Profile', 'doc_field':'View'}, (i, f)=>{
+			this.page.fields_dict[i].$wrapper.toggle(f===this.action_for)
+		})
+		this.ondoctype_changed()
+	}
 
 	update_data() {
-		$.each(this.fields_multicheck, (key, el) => {
-			this.values[key] = el.selected_options
-		})
-		let unchecked_values = {}
-		$.each(this.multicheck_selected, (key, val) => {
-			let obj = this.values[key] || []
-			if (typeof unchecked_values[key] === "undefined")
-				unchecked_values[key] = [];
-			val.forEach(v => {
-				if (!obj.includes(v))
-					unchecked_values[key].push(v)
-			})
-		})
-		const args = {
-			"selected_values": this.values,
-			"unselected_values": unchecked_values
-		}
-		frappe.call({
-			method: 'renovation_core.renovation_core.page.docfield_manager.docfield_manager.update_values',
-			args: {
-				values: args
-			},
-			callback: r => {
-				if (!r.xhr) {
-					frappe.show_alert({
-						body: __("Successfully Updated"),
-						indicator: 'green'
-					})
-				}
-			}
-		})
 	}
 
 	ondoctype_changed() {
-		if (!this.page.fields_dict['doctype'].value || (this.page.fields_dict['doctype'].value === this.doctype &&
-				this.page.fields_dict['user'].value === this.user)) {
-			return;
-		}
 		this.doctype = this.page.fields_dict['doctype'].value;
 		this.user = this.page.fields_dict['user'].value
+		this.role_profile = this.page.fields_dict['role_profile'].value
+		if (!this.doctype)
+			return
+		this.c_form_layout_wrapper.empty()
+		if (this.action_for==="View"){
+			return this.make_doc_field_view()
+		}
+		let args = {
+			doctype: this.doctype
+		}
+		if (this.action_for==="User") {
+			args['user'] = this.user
+		} else if (this.action_for==="Role Profile") {
+			args['role_profile'] = this.role_profile
+		}
 		frappe.call({
 			method: "renovation_core.renovation_core.page.docfield_manager.docfield_manager.get_docfield_and_selected_val",
-			args: {
-				doctype: this.doctype,
-				user: this.user
-			},
+			args: args,
 			freeze: true,
 			freeze_message: __("Fetching Data"),
 			callback: r => {
 				if (r['message']) {
-					this.multicheck_selected = r.message.selected_values
+					this.doctypes_selected = r.message.selected_values
 					this.doctypes_fields = r.message.doctypes_fields
 				}
-				this.set_field_options()
+				console.log(this.doctypes_selected)
+				this.c_form_layout = new renovation.FormLayout({
+					parent: this.c_form_layout_wrapper,
+					doctype: this.doctype,
+					doctypes_fields: this.doctypes_fields,
+					fields: this.doctypes_fields[this.doctype],
+					action_for: this.action_for,
+					doctypes_selected: this.doctypes_selected
+				})
 			}
 		})
 	}
+	make_doc_field_view() {
 
-	set_field_options() {
-		const doctype = this.doctype;
-		const related_doctypes = this.get_doctypes(doctype);
+	}
+}
 
-		this.$multicheckWrapper.empty();
 
-		// Add 'Select All', 'Select All Mandetory' and 'Unselect All' button
-		this.make_multiselect_buttons()
-		this.fields_multicheck = {}
-		related_doctypes.forEach(dt => {
-			this.fields_multicheck[dt] = this.add_doctype_field_multicheck_control(dt);
+renovation.FormLayout = class FormLayout {
+	constructor(options) {
+		this.fields_dict ={}
+		this.fields_list = []
+		this.sections = []
+		$.extend(this, options)
+		this.make()
+	}
+	make() {
+		this.wrapper = $('<div class="form-layout">').appendTo(this.parent);
+		let me = this;
+		$.each(me.doctypes_fields, (key, fields)=> {
+			me.doctype = key
+			me.render(fields)
+		})
+	}
+	render (new_fields) {
+		var me = this;
+		var fields = new_fields || this.fields;
+
+		this.section = null;
+		this.column = null;
+
+		if (this.no_opening_section(fields)) {
+			this.make_section();
+		}
+		$.each(fields, function(i, df) {
+			df.org_fieldtype = df.fieldtype
+			switch(df.fieldtype) {
+				case "Fold":
+					me.make_page(df);
+					break;
+				case "Section Break":
+					me.make_section(df);
+					break;
+				case "Column Break":
+					me.make_column(df);
+					break;
+				default:
+					df.fieldtype = "Check"
+					me.make_field(df);
+			}
+			if (i==0)
+				me.section.wrapper.prepend(`<h3 calss="text-muted">${me.doctype}</h3>`);
 		});
+
 	}
 
-	make_multiselect_buttons() {
-		const button_container = $(this.$multicheckWrapper)
-			.append('<div class="flex"></div>')
-			.find('.flex');
+	no_opening_section(fields) {
+		return (fields[0] && fields[0].fieldtype!="Section Break") || !fields.length;
+	}
 
-		["Select All", "Unselect All", "Select All Mandetory"].map(d => {
-			frappe.ui.form.make_control({
-				parent: $(button_container),
-				df: {
-					label: __(d),
-					fieldname: frappe.scrub(d),
-					fieldtype: "Button",
-					click: () => {
-						checkbox_toggle(d);
-					}
-				},
-				render_input: true
-			});
-		});
+	make_section (df) {
+		if (typeof df !== "undefined" && !df.label && df.fieldname)
+			df.label = df.fieldname;
+		this.section = new frappe.ui.form.Section(this, df);
 
-		$(button_container).find('.frappe-control').map((index, button) => {
-			$(button).css({
-				"margin-right": "1em"
-			});
-		});
-		let me = this
+		// append to layout fields
+		if(df) {
+			this.fields_dict[df.fieldname] = this.section;
+			this.fields_list.push(this.section);
+			if (df.fieldname)
+				this.make_field(df);
+		}
 
-		function checkbox_toggle(d) {
-			let checked = d === 'Unselect All';
-			let selector = `:checkbox`
-			if (d === "Select All Mandetory")
-				selector = `:checkbox.text-danger`;
-			$(me.$multicheckWrapper).find('[data-fieldtype="MultiCheck"]').map((index, element) => {
-				$(element).find(selector).prop("checked", checked).trigger('click');
-			});
+		this.column = null;
+	}
+	make_column(df) {
+		this.column = new frappe.ui.form.Column(this.section, df);
+		if(df && df.fieldname) {
+			this.fields_list.push(this.column);
+			if (!df.label)
+				df.label = df.fieldname;
+			this.make_field(df);
 		}
 	}
 
-	get_doctypes(parentdt) {
-		if (!this.doctypes_fields)
-			return [parentdt];
-		return [parentdt].concat(
-			Object.keys(this.doctypes_fields)
-		);
+	make_field(df) {
+		!this.section && this.make_section();
+		!this.column && this.make_column();
+
+		const fieldobj = this.init_field(df);
+		this.fields_list.push(fieldobj);
+		this.fields_dict[df.fieldname] = fieldobj;
+		this.section.fields_list.push(fieldobj);
+		this.section.fields_dict[df.fieldname] = fieldobj;
 	}
-
-	add_doctype_field_multicheck_control(doctype) {
-		const fields = this.get_fields(doctype);
-
-		const values = this.multicheck_selected[doctype] || [];
-		const options = fields
-			.map(df => {
-				return {
-					label: (df.label || df.fieldname) + ' <strong>(' + (df.fieldtype || "") + ')</strong>',
-					value: df.fieldname,
-					danger: df.reqd || df.fieldtype === "Table",
-					checked: values.includes(df.fieldname)
-				};
-			});
-		const multicheck_control = frappe.ui.form.make_control({
-			parent: this.$multicheckWrapper,
-			df: {
-				"label": doctype,
-				"fieldname": doctype + '_fields',
-				"fieldtype": "MultiCheck",
-				"options": options,
-				"selected_options": values,
-				"columns": 3,
-			},
-			render_input: true
+	init_field(df) {
+		const fieldobj = new renovation.CheckBox({
+			df: df,
+			parent: this.column.wrapper.get(0),
+			doctype: this.doctype,
+			disp_status: "Write",
+			action_for: this.action_for,
+			value:this.doctypes_selected && this.doctypes_selected['Global'] && this.doctypes_selected['Global'][this.doctype] && this.doctypes_selected['Global'][this.doctype].includes(df.fieldname),
+			user_value:this.doctypes_selected && this.doctypes_selected['User'] && this.doctypes_selected['User'][this.doctype] && this.doctypes_selected['User'][this.doctype].includes(df.fieldname),
+			role_profile_value:this.doctypes_selected && this.doctypes_selected['Role Profile'] && this.doctypes_selected['Role Profile'][this.doctype] && this.doctypes_selected['Role Profile'][this.doctype].includes(df.fieldname)
 		});
-		multicheck_control.$checkbox_area.find('.label-area.text-danger').prev().addClass('text-danger')
-		multicheck_control.refresh_input();
-
-		return multicheck_control;
-	}
-	filter_fields(df) {
-		return (frappe.model.is_value_type(df) || ["Table", "Section Break"].includes(df.fieldtype)) && !df.hidden
-	}
-	get_fields(dt) {
-		return this.get_docfields(dt).filter(this.filter_fields)
-	}
-	get_docfields(dt) {
-		return this.doctypes_fields[dt] || []
+		fieldobj.refresh_input()
+		fieldobj.layout = this;
+		return fieldobj;
 	}
 }
+
+
+renovation.CheckBox = frappe.ui.form.ControlCheck.extend({
+	make_wrapper: function() {
+		this.$wrapper = $('<div class="form-group frappe-control">\
+			<div class="checkbox">\
+				<label class="col-xs-12">\
+					<span class="input-area"></span>\
+					<span class="disp-area"></span>\
+					<span class="label-area small"></span>\
+					<span class="input-area role_profile_input_area pull-right"></span>\
+					<span class="input-area user_input_area pull-right"></span>\
+				</label>\
+				<p class="help-box small text-muted"></p>\
+			</div>\
+		</div>').appendTo(this.parent);
+	},
+	set_input_areas: function() {
+		this._super()
+		this.user_input_area = this.$wrapper.find(".user_input_area").get(0);
+		this.role_profile_input_area = this.$wrapper.find(".role_profile_input_area").get(0);
+	},
+	make_input: function() {
+		this._super()
+		this.$input.prop('disabled', this.action_for!=="Global")
+		// User Input Filed
+		console.log(this.user_value)
+		this.$user_input = $("<"+ this.html_element +">")
+		.attr("type", this.input_type)
+		.attr("autocomplete", "off")
+		.addClass("input-with-feedback form-control")
+		.prependTo(this.user_input_area);
+		this.$user_input
+			.attr("data-fieldtype", this.df.fieldtype)
+			.attr("data-fieldname", "user_" + this.df.fieldname)
+			.attr("title", "User")
+			.prop('disabled', this.action_for!=="User")
+			.prop('checked', this.user_value);
+		if(this.doctype) {
+			this.$user_input.attr("data-doctype", this.doctype);
+		}
+		// Profile Role Input
+		this.$role_profile_input = $("<"+ this.html_element +">")
+		.attr("type", this.input_type)
+		.attr("autocomplete", "off")
+		.addClass("input-with-feedback form-control")
+		.prependTo(this.role_profile_input_area);
+		this.$role_profile_input
+			.attr("data-fieldtype", this.df.fieldtype)
+			.attr("data-fieldname", "role_profile_" + this.df.fieldname)
+			.attr("title", "Role Profile")
+			.prop('disabled', this.action_for!=="Role Profile")
+			.prop('checked', this.role_profile_value);
+		if(this.doctype) {
+			this.$role_profile_input.attr("data-doctype", this.doctype);
+		}
+
+	},
+	set_label: function(label) {
+		if(label) this.df.label = label;
+
+		if(this.only_input || this.df.label==this._label)
+			return;
+
+		var icon = "";
+		this.label_span.innerHTML = (icon ? '<i class="'+icon+'"></i> ' : "") +
+			__(this.df.label) + "<strong>&nbsp;("+ this.df.org_fieldtype +")</strong>"  || "&nbsp;";
+		this._label = this.df.label;
+	}
+})

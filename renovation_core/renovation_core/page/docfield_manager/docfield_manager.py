@@ -36,29 +36,53 @@ def update_values(values):
 
 
 @frappe.whitelist()
-def get_docfield_and_selected_val(doctype, user=None):
+def get_docfield_and_selected_val(doctype, user=None, role_profile=None):
 	return {
-		"doctypes_fields": get_doctypes_fields(doctype, user),
-		"selected_values": get_selected_values(doctype, user)
+		"doctypes_fields": get_doctypes_fields(doctype),
+		"selected_values": get_all_enable_fields(doctype, user, role_profile)
 	}
 
 
-@frappe.whitelist()
-def get_doctypes_fields(doctype, user=None):
+def get_all_enable_fields(doctype, user=None, role_profile=None):
 	meta = frappe.get_meta(doctype)
-	doctypes = [x.options for x in meta.fields if x.fieldtype=="Table"]
-	doctypes.append(doctype)
-	doc_map = {}
-	enabled_field = []
+	cdoctypes = [x.options for x in meta.fields if x.fieldtype=="Table"]
+	cdoctypes.append(doctype)
+	global_val = frappe.get_all("Renovation DocField", {"p_doctype": ('in', cdoctypes), "renovation_enabled": 1}, ['p_doctype', 'fieldname', 'name'])
+	g_val = get_map_data(global_val)
+
+	user_data = {}
 	if user:
-		enabled_field = ["{}:{}".format(x.p_doctype, x.fieldname) for x in frappe.get_all("Renovation DocField", 
-		{"p_doctype": ("in", doctypes), "renovation_enabled": 1},['p_doctype' ,'fieldname'])]
-	for f in meta.fields:
-		n = "{}:{}".format(f.parent, f.fieldname) 
-		if user and n not in enabled_field:
-			continue
-		doc = doc_map.setdefault(f.parent, [])
-		doc.append(f)
+		user_data = get_map_data(frappe.db.sql("""select p.p_doctype, p.fieldname from `tabRenovation DocField User` ct
+		 left join `tabRenovation DocField` p on ct.parent = p.name
+		 where ct.user='{}' and p.p_doctype in ('{}')""".format(user, "', '".join(cdoctypes)), as_dict=True))
+	
+	role_profile_data = {}
+	if role_profile:
+		role_profile_data = get_map_data(frappe.db.sql("""select p.p_doctype, p.fieldname from `tabRenovation DocField Role Profile` ct
+		 left join `tabRenovation DocField` p on ct.parent = p.name
+		 where ct.role_profile='{}' and p.p_doctype in ('{}')""".format(role_profile, "', '".join(cdoctypes)), as_dict=True))
+	return {
+		"Global": g_val,
+		"User": user_data,
+		"Role Profile": role_profile_data
+	}
+
+
+def get_map_data(data):
+	map_data = {}
+	for x in data:
+		d = map_data.setdefault(x.p_doctype, [])
+		d.append(x.fieldname)
+	return map_data
+
+
+@frappe.whitelist()
+def get_doctypes_fields(doctype):
+	meta = frappe.get_meta(doctype)
+	cdoctypes = [x.options for x in meta.fields if x.fieldtype=="Table"]
+	doc_map = {doctype: meta.fields}
+	for d in cdoctypes:
+		doc_map[d] = frappe.get_meta(d).fields
 	return doc_map
 
 
