@@ -79,7 +79,6 @@ class DocFieldManager {
 			this.page.add_field(field)
 		})
 		this.toggle_optional_fields()
-		this.$multicheckWrapper = $(`<div class="col-xs-12">`).appendTo(this.page.page_form)
 		this.page.set_primary_action(__("Update"), () => {
 			this.update_data()
 		})
@@ -93,6 +92,46 @@ class DocFieldManager {
 	}
 
 	update_data() {
+		if (!['Global', 'User', 'Role Profile'].includes(this.action_for))
+			return;
+		let args = {
+			values: this.get_serialize_values_for_action(),
+			action_for: this.action_for
+		}
+		if (this.action_for==="User") {
+			if (!this.user){
+				frappe.msgprint(__("Please select User"))
+				return
+			}
+			args['user'] = this.user
+		} else if (this.action_for==="Role Profile") {
+			args['role_profile'] = this.role_profile
+			if (!this.role_profile){
+				frappe.msgprint(__("Please select Role Profile"))
+				return
+			}
+		}
+		frappe.call({
+			method: "renovation_core.renovation_core.page.docfield_manager.docfield_manager.update_values",
+			args: args,
+			freeze: true,
+			callback: r => {
+				if (!r.xhr)
+					frappe.show_alert({message:__("Updated"), indicator: 'green'})
+			}
+		})
+	} 
+
+	get_serialize_values_for_action(action_for) {
+		let data  ={}
+		let action = action_for || this.action_for
+		this.c_form_layout_wrapper.find(':checkbox[data-action_for="'+action+'"]:checked').each((i, e)=>{
+			let doctype = $(e).attr('data-doctype')
+			if (typeof data[doctype] === "undefined")
+				data[doctype] = [];
+			data[doctype].push($(e).attr('data-fieldname'))
+		})
+		return data
 	}
 
 	ondoctype_changed() {

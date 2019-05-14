@@ -19,8 +19,9 @@ class RenovationDocField(Document):
         self.name = self.p_doctype + "-" + self.fieldname
 
 
-def toggle_enabled(doctype, fieldname, enabled=0):
+def toggle_enabled(doctype, fieldname, enabled=0, user=None, role_profile=None, ignore_parent_update=False):
     clear_meta_cache(doctype)
+    value_changed =False
     # get doc 
     existing = frappe.get_list("Renovation DocField", filters={
         "p_doctype": doctype,
@@ -33,9 +34,40 @@ def toggle_enabled(doctype, fieldname, enabled=0):
         doc = frappe.new_doc("Renovation DocField")
         doc.p_doctype = doctype
         doc.fieldname = fieldname
+    # User Enable/Disable
+    if user:
+        doc, value_changed = update_child_values(doc, 'users', 'user', user, enabled, value_changed)
     
-    doc.renovation_enabled = enabled
-    doc.save()
+    # Role Profile Enable/Disable
+    if role_profile:
+        doc, value_changed = update_child_values(doc, 'role_profiles', 'role_profile', role_profile, enabled, value_changed)
+
+    # Global Enable/Disable
+    if not ignore_parent_update and doc.renovation_enabled != enabled:
+        doc.renovation_enabled = enabled
+        value_changed = True
+    if value_changed:
+        doc.save()
+
+def update_child_values(doc, chielfield, cfield, cfval, enabled, value_changed=False):
+    cdocs = doc.as_dict().get(chielfield, [])
+    got_cfield = False
+    for cdoc in cdocs:
+        if cdoc.get(cfield) == cfval:
+            got_cfield = True
+            if cdoc.enabled != enabled:
+                value_changed = True
+                cdoc.enabled = enabled
+            break
+    if not got_cfield:
+        cdocs.append({
+            cfield: cfval,
+            "enabled": enabled
+        })
+        value_changed = True
+    if value_changed:
+        doc.set(chielfield, cdocs)
+    return doc, value_changed
 
 
 @frappe.whitelist()

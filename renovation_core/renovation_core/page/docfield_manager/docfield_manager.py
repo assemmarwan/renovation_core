@@ -6,32 +6,33 @@ from six import string_types
 
 
 @frappe.whitelist()
-def get_selected_values(doctype, user=None):
-	meta = frappe.get_meta(doctype)
-	doctypes = [x.options for x in meta.fields if x.get('fieldtype')=="Table"]
-	doctypes.append(doctype)
-	disabled_fields = get_user_disable_fields(user)
-	values = {}
-	for d in frappe.get_all("Renovation DocField", {"renovation_enabled":1, 'p_doctype': ('in', doctypes)}, ['p_doctype' ,'fieldname', 'name']):
-		if d.name in disabled_fields:
-			continue
-		row = values.setdefault(d.p_doctype, [])
-		row.append(d.fieldname)
-	return values
-
-
-@frappe.whitelist()
-def update_values(values):
+def update_values(values, action_for, user=None, role_profile=None):
 	if isinstance(values, string_types):
 		values = json.loads(values)
-	toggler = {
-		"selected_values": 1,
-		"unselected_values":0
-	}
-	for key, val in toggler.items():
-		for doctype, fields in values.get(key, {}).items():
-			for fieldname in fields or []:
-				enable_field(doctype, fieldname, val)
+	for doctype, fields in values.items():
+		for fieldname in fields or []:
+			if action_for=="Global":
+				enable_field(doctype, fieldname, 1)
+			elif action_for=="User":
+				enable_field(doctype, fieldname, 1, user, ignore_parent_update=True)
+			elif action_for=="Role Profile":
+				enable_field(doctype, fieldname, 1, role_profile=role_profile, ignore_parent_update=True)
+
+		if action_for=="Global":
+			frappe.db.sql("""update `tabRenovation DocField` set renovation_enabled=0 
+			where p_doctype = '{}' and fieldname not in ('{}')""".format(doctype, "', '".join(fields)))
+		elif action_for=="User":
+			frappe.db.sql("""update `tabRenovation DocField User` ct
+		 left join `tabRenovation DocField` p on ct.parent = p.name
+		 set ct.enabled=0 
+		 where ct.user='{}' and p.p_doctype='{}' and p.fieldname not in ('{}')"""
+		 .format(user, doctype, "', '".join(fields)))
+		elif action_for=="Role Profile":
+			frappe.db.sql("""update `tabRenovation DocField Role Profile` ct
+		 left join `tabRenovation DocField` p on ct.parent = p.name
+		 set ct.enabled=0 
+		 where ct.role_profile='{}' and p.p_doctype='{}' and p.fieldname not in ('{}')"""
+		 .format(role_profile, doctype, "', '".join(fields)))
 	return
 
 
@@ -84,10 +85,3 @@ def get_doctypes_fields(doctype):
 	for d in cdoctypes:
 		doc_map[d] = frappe.get_meta(d).fields
 	return doc_map
-
-
-def get_user_disable_fields(user, doctype=None):
-	filters = [["Renovation DocField User", "user", "=", user]]
-	if doctype:
-		filters.append(['Renovation DocField', 'p_doctype', '=', doctype])
-	return [x.parent for x in frappe.get_all("Renovation DocField User", filters, 'parent') if x.parent]
