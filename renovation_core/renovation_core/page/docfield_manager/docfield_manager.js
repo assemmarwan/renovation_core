@@ -123,7 +123,6 @@ class DocFieldManager {
 					this.doctypes_selected = r.message.selected_values
 					this.doctypes_fields = r.message.doctypes_fields
 				}
-				console.log(this.doctypes_selected)
 				this.c_form_layout = new renovation.FormLayout({
 					parent: this.c_form_layout_wrapper,
 					doctype: this.doctype,
@@ -268,9 +267,10 @@ renovation.CheckBox = frappe.ui.form.ControlCheck.extend({
 	},
 	make_input: function() {
 		this._super()
-		this.$input.prop('disabled', this.action_for!=="Global")
+		this.$input
+			.prop('disabled', this.action_for!=="Global")
+			.attr("data-action_for", 'Global');
 		// User Input Filed
-		console.log(this.user_value)
 		this.$user_input = $("<"+ this.html_element +">")
 		.attr("type", this.input_type)
 		.attr("autocomplete", "off")
@@ -278,7 +278,8 @@ renovation.CheckBox = frappe.ui.form.ControlCheck.extend({
 		.prependTo(this.user_input_area);
 		this.$user_input
 			.attr("data-fieldtype", this.df.fieldtype)
-			.attr("data-fieldname", "user_" + this.df.fieldname)
+			.attr("data-fieldname", this.df.fieldname)
+			.attr("data-action_for", 'User')
 			.attr("title", "User")
 			.prop('disabled', this.action_for!=="User")
 			.prop('checked', this.user_value);
@@ -293,7 +294,8 @@ renovation.CheckBox = frappe.ui.form.ControlCheck.extend({
 		.prependTo(this.role_profile_input_area);
 		this.$role_profile_input
 			.attr("data-fieldtype", this.df.fieldtype)
-			.attr("data-fieldname", "role_profile_" + this.df.fieldname)
+			.attr("data-fieldname", this.df.fieldname)
+			.attr("data-action_for", 'Role Profile')
 			.attr("title", "Role Profile")
 			.prop('disabled', this.action_for!=="Role Profile")
 			.prop('checked', this.role_profile_value);
