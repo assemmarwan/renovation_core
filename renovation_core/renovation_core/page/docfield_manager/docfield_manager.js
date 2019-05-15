@@ -22,6 +22,7 @@ class DocFieldManager {
 		this.user = null
 		this.action_for = "Global"
 		this.c_form_layout_wrapper = $(`<div></div>`).appendTo(this.page.main)
+		this.doc_field_iotions = {}
 		this.make()
 	}
 
@@ -174,7 +175,37 @@ class DocFieldManager {
 		})
 	}
 	make_doc_field_view() {
-
+		this.set_options_foe_view_field()
+		this.doc_field = this.page.fields_dict.doc_field.value
+		if (!(this.doc_field && this.doctype))
+			return;
+		this.doc_field_wrapepr = new renovation.DocFieldViewer({
+			doctype: this.doctype,
+			fieldname: this.doc_field,
+			parent: this.c_form_layout_wrapper
+		})
+	}
+	set_options_foe_view_field() {
+		let field = this.page.fields_dict.doc_field;
+		if (field.$input.attr('data-optionsof')===this.doctype)
+			return;
+		if(this.doc_field_iotions[this.doctype]) {
+			field.df.options = this.doc_field_iotions[this.doctype]
+			field.refresh_input()
+		}else {
+			frappe.call({
+				method: 'frappe.custom.doctype.custom_field.custom_field.get_fields_label',
+				args: { doctype: this.doctype },
+				freeze: true,
+				callback: r => {
+					if(!r.xhr) {
+						this.doc_field_iotions[this.doctype] = r.message;
+						field.df.options = this.doc_field_iotions[this.doctype]
+						field.refresh_input()
+					}
+				}
+			});
+		}
 	}
 }
 
@@ -355,3 +386,40 @@ renovation.CheckBox = frappe.ui.form.ControlCheck.extend({
 		this._label = this.df.label;
 	}
 })
+
+
+renovation.DocFieldViewer = class DocFieldViewer {
+	constructor(options){
+		$.extend(this, options)
+		this.values = {}
+		this.key = this.doctype + '-' + this.fieldname
+		console.log(this.key)
+		if(typeof this.values[this.key] !== "undefined") {
+			this.render()
+		} else {
+			frappe.call({
+				method: "frappe.client.get",
+				args: {
+					doctype: "Renovation DocField",
+					name: this.key
+				},
+				freeze: true,
+				callback: r => {
+					if(r['message']){
+						this.values[this.key] = {
+							"enabled": r.message.renovation_enabled,
+							"users": r.message.users,
+							"role_profiles": r.message.role_profiles
+						}
+						this.render()
+					}
+				}
+			})
+		}
+	}
+	render() {
+		let val = this.values[this.key]
+		this.wrapper = $(frappe.render_template('docfield_manager_view', val))
+		.appendTo(this.parent)
+	}
+}
