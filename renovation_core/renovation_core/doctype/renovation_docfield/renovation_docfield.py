@@ -17,10 +17,13 @@ class RenovationDocField(Document):
 
     def autoname(self):
         self.name = self.p_doctype + "-" + self.fieldname
+    
+    def on_update(self):
+        clear_meta_cache(self.doctype)
+
 
 
 def toggle_enabled(doctype, fieldname, enabled=0, user=None, role_profile=None, ignore_parent_update=False):
-    clear_meta_cache(doctype)
     value_changed =False
     # get doc 
     existing = frappe.get_list("Renovation DocField", filters={
