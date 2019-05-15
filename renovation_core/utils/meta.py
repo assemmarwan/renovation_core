@@ -52,7 +52,7 @@ def get_bundle(doctype, user=None):
 
 def get_enabled_fields(doctype, user=None, role_profile=None):
 	"""
-	Praroty
+	Priority
 	1.User
 	2.Role Profile
 	3.Global
