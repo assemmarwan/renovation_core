@@ -1,7 +1,7 @@
 import frappe
 import random
 from frappe.auth import LoginManager
-from frappe.core.doctype.sms_settings.sms_settings import send_sms
+from .sms_setting import send_sms
 from renovation_core.utils import get_request_body, update_http_response
 from frappe.utils import cint
 
@@ -24,8 +24,11 @@ def generate_sms_pin():
 			frappe.db.set_value("User", user, "renovation_sms_pin", pin, update_modified=False)
 	
 	msg = "Your verification PIN is: " + pin
-	send_sms([mobile], msg, success_msg = False)
-	update_http_response({"status": "success", "mobile": mobile})
+	sms = send_sms([mobile], msg, success_msg = False)
+	status = "fail"
+	if sms and isinstance(sms, list) and mobile in sms:
+		status = "success"
+	update_http_response({"status": status, "mobile": mobile})
 
 def verify_sms_pin():
 	mobile = frappe.local.form_dict.mobile
