@@ -4,7 +4,7 @@ import frappe
 @frappe.whitelist()
 def get_sidebar(parent = None):
 	if not parent:
-		parent = 'All Renovation Sidebar'
+		parent = 'All'
 	cache_sidebar = frappe.cache().hget('renovation_sidbar', parent)
 	if not cache_sidebar:
 		cache_sidebar = get_user_sidebar(parent)
