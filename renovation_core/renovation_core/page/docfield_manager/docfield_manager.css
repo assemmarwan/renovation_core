@@ -13,3 +13,7 @@ input[type="checkbox"]:disabled:checked:before {
 .row.form-section > h3.text-muted {
     color: lightgray
 }
+
+.help-box.small.text-muted {
+    float: left;
+}
