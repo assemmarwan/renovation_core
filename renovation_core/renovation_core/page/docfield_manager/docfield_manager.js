@@ -35,7 +35,8 @@ class DocFieldManager {
 				options: 'DocType',
 				reqd: 1,
 				onchange: () => {
-					this.ondoctype_changed()
+					if (this.doctype !== this.page.fields_dict.doctype.value)
+						this.ondoctype_changed();
 				}
 			},
 			{
@@ -54,7 +55,8 @@ class DocFieldManager {
 				fieldtype: 'Link',
 				options: 'User',
 				onchange: () => {
-					this.ondoctype_changed()
+					if (this.user !== this.page.fields_dict.user.value)
+						this.ondoctype_changed();
 				}
 			},
 			{
@@ -63,7 +65,8 @@ class DocFieldManager {
 				fieldtype: 'Link',
 				options: 'Role Profile',
 				onchange: () => {
-					this.ondoctype_changed()
+					if (this.role_profile !== this.page.fields_dict.role_profile.value)
+						this.ondoctype_changed();
 				}
 			},
 			{
