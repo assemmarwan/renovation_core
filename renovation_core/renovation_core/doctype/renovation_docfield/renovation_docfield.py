@@ -19,7 +19,7 @@ class RenovationDocField(Document):
         self.name = self.p_doctype + "-" + self.fieldname
     
     def on_update(self):
-        clear_meta_cache(self.doctype)
+        clear_meta_cache(self.p_doctype)
 
 
 
