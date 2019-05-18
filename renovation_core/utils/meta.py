@@ -1,8 +1,16 @@
 import frappe
 from frappe.model.utils.user_settings import get_user_settings
-from frappe.desk.form.load import get_meta_bundle
+# from frappe.desk.form.load import get_meta_bundle
 
 from renovation_core.utils import update_http_response, get_request_body
+
+
+def get_meta_bundle(doctype):
+	bundle = [frappe.desk.form.meta.get_meta(doctype, False)]
+	for df in bundle[0].fields:
+		if df.fieldtype=="Table":
+			bundle.append(frappe.desk.form.meta.get_meta(df.options, False))
+	return bundle
 
 @frappe.whitelist(allow_guest=True)
 def get_bundle(doctype, user=None):
@@ -18,7 +26,7 @@ def get_bundle(doctype, user=None):
 		
 		# update renovation_enabled
 		for meta in get_meta_bundle(doctype):
-			enabled_fields = get_enabled_fields(meta.name)
+			enabled_fields = get_enabled_fields(meta.name, user)
 			meta = frappe._dict(meta.as_dict())
 			# renovation-core takes 1 as true since all other db-Check types are 0/1
 			meta.treeview = 1 if meta.name in frappe.get_hooks("treeviews") else 0
