@@ -169,6 +169,7 @@ class DocFieldManager {
 				this.c_form_layout = new renovation.FormLayout({
 					parent: this.c_form_layout_wrapper,
 					doctype: this.doctype,
+					first_doctype: this.doctype,
 					doctypes_fields: this.doctypes_fields,
 					fields: this.doctypes_fields[this.doctype],
 					action_for: this.action_for,
@@ -224,9 +225,15 @@ renovation.FormLayout = class FormLayout {
 	make() {
 		this.wrapper = $('<div class="form-layout">').appendTo(this.parent);
 		let me = this;
+		if (typeof this.doctypes_fields[this.first_doctype] !=="undefined"){
+			this.doctype = this.first_doctype
+			this.render(this.doctypes_fields[this.first_doctype]);
+		}
 		$.each(me.doctypes_fields, (key, fields)=> {
-			me.doctype = key
-			me.render(fields)
+			if (key !== me.first_doctype){
+				me.doctype = key
+				me.render(fields)
+			}
 		})
 	}
 	render (new_fields) {
