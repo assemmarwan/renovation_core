@@ -133,5 +133,6 @@ after_install = "renovation_core.install.after_install.after_install"
 override_whitelisted_methods = {
 	"frappe.auth.get_logged_user": "renovation_core.get_logged_user",
 	"renovation": "renovation_core.handler.handler",
+	"frappe.integrations.oauth2.openid_profile": "renovation_core.utils.oauth2.openid_profile_endpint"
 }
 
