@@ -37,6 +37,8 @@ def toggle_enabled(doctype, fieldname, enabled=0, user=None, role_profile=None, 
         doc = frappe.new_doc("Renovation DocField")
         doc.p_doctype = doctype
         doc.fieldname = fieldname
+        doc.renovation_enabled = 0 if ignore_parent_update else enabled
+        value_changed = True
     # User Enable/Disable
     if user:
         doc, value_changed = update_child_values(doc, 'users', 'user', user, enabled, value_changed)
