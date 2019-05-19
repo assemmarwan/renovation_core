@@ -15,8 +15,8 @@
     * Added Changelog
 
 #### Modify: 
-    * Merger PR [10](https://github.com/MalikZu/renovation_core/pull/10)
-    * 
+    * Merger PR#[10](https://github.com/MalikZu/renovation_core/pull/10)
+    * Fixed Seelct Problem in Renovation DocField Issue#[13](https://github.com/MalikZu/renovation_core/issues/13)
 
 #### Remove:
 
