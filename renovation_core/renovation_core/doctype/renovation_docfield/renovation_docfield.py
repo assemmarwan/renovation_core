@@ -105,3 +105,8 @@ def add_all_reqd_table_fields(doctypes=None):
                 })
                 doc.insert()
         frappe.db.commit()
+
+
+@frappe.whitelist()
+def get_fields_label(doctype):
+    return [{"value":x.fieldname, "label":x.label or x.fieldname} for x in frappe.get_meta(doctype).fields if x.get('fieldname')]
