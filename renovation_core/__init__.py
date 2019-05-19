@@ -4,7 +4,7 @@ from frappe.model.meta import Meta
 import frappe.model.sync
 from .utils.sync import _get_doc_files, process
 
-__version__ = '11.1.11'
+__version__ = '0.6.0'
 
 
 Meta.process = process
