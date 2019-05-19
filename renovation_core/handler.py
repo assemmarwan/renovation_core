@@ -50,7 +50,7 @@ def uploadfile():
 	ret =  uf()
 
 	form = frappe.form_dict
-	if ret.get("file_url", None) and form and form.get("doctype", None) and form.get("docname") and form.get("docfield", None):
+	if ret and ret.get("file_url", None) and form and form.get("doctype", None) and form.get("docname") and form.get("docfield", None):
 		# fill the field
 		dt = form.get("doctype")
 		dn = form.get("docname")

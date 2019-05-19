@@ -7,7 +7,7 @@ import frappe.core.doctype.sms_settings.sms_settings
 from .utils.sms_setting import validate_receiver_nos
 
 
-__version__ = '11.1.11'
+__version__ = '0.6.0'
 
 
 Meta.process = process
