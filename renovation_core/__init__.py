@@ -39,7 +39,8 @@ def append_user_info_to_response(user):
     "message": "Logged In",
     "home_page": "/desk",
     "full_name": user_details[1],
-    "has_quick_login_pin": user_details[2] != None
+    "has_quick_login_pin": user_details[2] != None,
+    "lang": frappe.translate.get_user_lang()
   })
 
   for method in frappe.get_hooks().get("renovation_login_response", []):
