@@ -5,6 +5,9 @@ import frappe.model.sync
 from .utils.sync import _get_doc_files, process
 import frappe.core.doctype.sms_settings.sms_settings
 from .utils.sms_setting import validate_receiver_nos
+import frappe.api
+from .api import validate_api_key_secret
+
 
 
 __version__ = '0.6.1'
@@ -13,6 +16,7 @@ __version__ = '0.6.1'
 Meta.process = process
 frappe.model.sync.get_doc_files = _get_doc_files
 frappe.core.doctype.sms_settings.sms_settings.validate_receiver_nos = validate_receiver_nos
+frappe.api.validate_api_key_secret = validate_api_key_secret
 
 
 def clear_cache():
