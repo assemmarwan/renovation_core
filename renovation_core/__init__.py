@@ -7,6 +7,8 @@ import frappe.core.doctype.sms_settings.sms_settings
 from .utils.sms_setting import validate_receiver_nos
 import frappe.handler
 from .handler import execute_cmd
+import frappe.app
+from .app import init_request
 
 
 __version__ = '0.6.2'
@@ -15,6 +17,7 @@ __version__ = '0.6.2'
 Meta.process = process
 frappe.model.sync.get_doc_files = _get_doc_files
 frappe.core.doctype.sms_settings.sms_settings.validate_receiver_nos = validate_receiver_nos
+frappe.app.init_request = init_request
 frappe.handler.execute_cmd = execute_cmd
 
 

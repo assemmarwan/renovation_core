@@ -101,9 +101,11 @@ def login_via_token(token):
 	if not frappe.db.exists('Renovation Token', token):
 		raise frappe.InvalidSignatureError(_("Invalide Token"))
 	doc = frappe.get_doc('Renovation Token', token)
+	if doc.status != "Active":
+		raise frappe.InvalidSignatureError(_("Token not Active"))
 	try:
-		jwt.decode(doc.name, doc.secret)
-		frappe.set_user(doc.user)
+		valide_token = jwt.decode(doc.name, doc.secret)
+		frappe.set_user(valide_token.get('sub'))
 	except Exception:
 		raise
 	
