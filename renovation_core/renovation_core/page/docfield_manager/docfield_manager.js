@@ -327,7 +327,9 @@ renovation.FormLayout = class FormLayout {
 
 renovation.CheckBox = frappe.ui.form.ControlCheck.extend({
 	make_wrapper: function() {
-		this.$wrapper = $('<div class="form-group frappe-control">\
+		if (this.df.reqd)
+			console.log( this.df.fieldname + "Rewd" + this.df.reqd);
+		this.$wrapper = $(`<div class="form-group frappe-control ${this.df.reqd?'has-error':''}">\
 			<div class="checkbox">\
 				<label class="col-xs-12">\
 					<span class="input-area"></span>\
@@ -338,7 +340,7 @@ renovation.CheckBox = frappe.ui.form.ControlCheck.extend({
 				</label>\
 				<p class="help-box small text-muted"></p>\
 			</div>\
-		</div>').appendTo(this.parent);
+		</div>`).appendTo(this.parent);
 	},
 	set_input_areas: function() {
 		this._super()
@@ -394,6 +396,9 @@ renovation.CheckBox = frappe.ui.form.ControlCheck.extend({
 		this.label_span.innerHTML = (icon ? '<i class="'+icon+'"></i> ' : "") +
 			__(this.df.label) + "<strong>&nbsp;("+ this.df.org_fieldtype +")</strong>"  || "&nbsp;";
 		this._label = this.df.label;
+	},
+	set_mandatory: function() {
+		//this.$wrapper.toggleClass("has-error", this.df.reqd);
 	}
 })
 
