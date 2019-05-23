@@ -5,8 +5,11 @@ from frappe.handler import uploadfile as uf
 # erpnext will be updated to py3, if done the otherway, this will break
 from .utils.doc import doc_handler
 from .utils.report import get_report
-from .utils.auth import generate_sms_pin, verify_sms_pin
+from .utils.auth import generate_sms_pin, verify_sms_pin, login_via_token
 from .utils import get_request_method, get_request_path, update_http_response
+from frappe.handler import get_attr, is_whitelisted
+from six import string_types
+import json
 # api generals are handled here
 # this file will be the interface to the frappe system
 # if frappe system was to make changes in the future, we will have to update it here only
@@ -58,3 +61,31 @@ def uploadfile():
 		if frappe.db.get_value(dt, dn):
 			frappe.db.set_value(dt, dn, df, ret.get("file_url"))
 	return ret
+
+
+def execute_cmd(cmd, from_async=False):
+	"""execute a request as python module"""
+	for hook in frappe.get_hooks("override_whitelisted_methods", {}).get(cmd, []):
+		# override using the first hook
+		cmd = hook
+		break
+
+	try:
+		method = get_attr(cmd)
+	except Exception as e:
+		if frappe.local.conf.developer_mode:
+			raise e
+		else:
+			frappe.respond_as_web_page(title='Invalid Method', html='Method not found',
+			indicator_color='red', http_status_code=404)
+		return
+
+	if from_async:
+		method = method.queue
+	if frappe.local.is_ajax and frappe.get_request_header("Authorization"):
+		token = frappe.get_request_header("Authorization").split(" ")[-1]
+		login_via_token(token)
+		frappe.response['docs'] = []
+
+	is_whitelisted(method)
+	return frappe.call(method, **frappe.form_dict)

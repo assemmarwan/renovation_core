@@ -3,7 +3,12 @@ import random
 from frappe.auth import LoginManager
 from .sms_setting import send_sms
 from renovation_core.utils import get_request_body, update_http_response
-from frappe.utils import cint
+from frappe.utils import cint, random_string
+import jwt, hashlib
+from six import string_types
+from frappe.utils.password import check_password
+from frappe import _
+
 
 def generate_sms_pin():
 	mobile = frappe.local.form_dict.mobile
@@ -90,3 +95,59 @@ def pin_login(user, pin, device=None):
 		clear_sessions(user, True, device)
 	return frappe.session.user
 
+
+@frappe.whitelist(allow_guest=True)
+def login_via_token(token):
+	if not frappe.db.exists('Renovation Token', token):
+		raise frappe.InvalidSignatureError(_("Invalide Token"))
+	doc = frappe.get_doc('Renovation Token', token)
+	try:
+		jwt.decode(doc.name, doc.secret)
+		frappe.set_user(doc.user)
+	except Exception:
+		raise
+	
+
+
+@frappe.whitelist(allow_guest=True)
+def get_token(user, pwd, expire_on=None, secret=None):
+	if not frappe.db.exists("User", user):
+		raise frappe.ValidationError(_("Invalide User"))
+	doc = frappe.get_doc('User', user)
+	if not doc.enabled:
+		raise frappe.ValidationError(_("User Disable"))
+	
+	check_password(user, pwd)
+
+	if expire_on and not isinstance(expire_on, frappe.utils.datetime.datetime):
+		expire_on = frappe.utils.get_datetime(expire_on)
+	else:
+		expire_on = frappe.utils.datetime.datetime.today() + frappe.utils.datetime.timedelta(days=3)
+	
+	if not secret:
+		secret = random_string(32)
+	
+	token = make_jwt(user, secret, expire_on)
+	doc = frappe.get_doc({
+		"doctype": "Renovation Token",
+		"name": token,
+		"token": token,
+		"expires_in": int(( expire_on - frappe.utils.datetime.datetime(1970, 1, 1)).total_seconds()),
+		"user": user,
+		"secret": secret,
+		"expiration_time": expire_on
+	})
+	doc.insert(ignore_permissions=True)
+	return token
+
+def make_jwt(user, secret, expire_on):
+	id_token_header = {
+		"typ":"jwt",
+		"alg":"HS256"
+	}
+	id_token = {
+		"exp": int(( expire_on - frappe.utils.datetime.datetime(1970, 1, 1)).total_seconds()),
+		"sub": user
+	}
+	token_encoded = jwt.encode(id_token, secret, algorithm='HS256', headers=id_token_header)
+	return token_encoded
