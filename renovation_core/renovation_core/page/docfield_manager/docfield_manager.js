@@ -327,8 +327,6 @@ renovation.FormLayout = class FormLayout {
 
 renovation.CheckBox = frappe.ui.form.ControlCheck.extend({
 	make_wrapper: function() {
-		if (this.df.reqd)
-			console.log( this.df.fieldname + "Rewd" + this.df.reqd);
 		this.$wrapper = $(`<div class="form-group frappe-control ${this.df.reqd?'has-error':''}">\
 			<div class="checkbox">\
 				<label class="col-xs-12">\
