@@ -8,6 +8,18 @@
 #### Modify:
 #### Remove:
 
+
+### v0.6.3 - Unreleased
+---
+
+#### New:
+* Added Override as Global Field in and functionality
+
+#### Modify: 
+* Fixed Dashboard multiple cmd Error
+* Fixed Property Error in Renovation Dashboard.
+* Make mandatory as red in Renovaiton DocField manager
+
 ### v0.6.2 - 19th May 2019
 ---
 

@@ -10,7 +10,7 @@ from .api import validate_api_key_secret
 
 
 
-__version__ = '0.6.2'
+__version__ = '0.6.3'
 
 
 Meta.process = process
