@@ -59,6 +59,8 @@ def get_context(**kwargs):
 		if self.exc_type == "eval" and self.eval_code:
 			return eval(self.eval_code)
 		else:
+			if kwargs.get('cmd'):
+				del kwargs['cmd']
 			return self.call_cmd(cmd, **kwargs)
 
 	def call_cmd(self,cmd, **kwargs):
