@@ -97,22 +97,18 @@ def pin_login(user, pin, device=None):
 
 
 @frappe.whitelist(allow_guest=True)
-def login_via_token(token):
-	if not frappe.db.exists('Renovation Token', token):
-		raise frappe.InvalidSignatureError(_("Invalide Token"))
-	doc = frappe.get_doc('Renovation Token', token)
-	if doc.status != "Active":
-		raise frappe.InvalidSignatureError(_("Token not Active"))
+def login_via_token(token, secret='Bearer'):
 	try:
-		valide_token = jwt.decode(doc.name, doc.secret)
+		valide_token = jwt.decode(token, secret)
+		if frappe.request.remote_addr !=valide_token.get('ip'):
+			raise frappe.InvalidSignatureError(_("Invalide Request"))
 		frappe.set_user(valide_token.get('sub'))
 	except Exception:
 		raise
-	
 
 
 @frappe.whitelist(allow_guest=True)
-def get_token(user, pwd, expire_on=None, secret=None):
+def get_token(user, pwd, expire_on=None, secret='Bearer'):
 	if not frappe.db.exists("User", user):
 		raise frappe.ValidationError(_("Invalide User"))
 	doc = frappe.get_doc('User', user)
@@ -125,21 +121,7 @@ def get_token(user, pwd, expire_on=None, secret=None):
 		expire_on = frappe.utils.get_datetime(expire_on)
 	else:
 		expire_on = frappe.utils.datetime.datetime.today() + frappe.utils.datetime.timedelta(days=3)
-	
-	if not secret:
-		secret = random_string(32)
-	
 	token = make_jwt(user, secret, expire_on)
-	doc = frappe.get_doc({
-		"doctype": "Renovation Token",
-		"name": token,
-		"token": token,
-		"expires_in": int(( expire_on - frappe.utils.datetime.datetime(1970, 1, 1)).total_seconds()),
-		"user": user,
-		"secret": secret,
-		"expiration_time": expire_on
-	})
-	doc.insert(ignore_permissions=True)
 	return token
 
 def make_jwt(user, secret, expire_on):
@@ -149,7 +131,14 @@ def make_jwt(user, secret, expire_on):
 	}
 	id_token = {
 		"exp": int(( expire_on - frappe.utils.datetime.datetime(1970, 1, 1)).total_seconds()),
-		"sub": user
+		"sub": user,
+		"ip": frappe.request.remote_addr
 	}
 	token_encoded = jwt.encode(id_token, secret, algorithm='HS256', headers=id_token_header)
 	return token_encoded
+
+
+@frappe.whitelist(allow_guest=True)
+def get_csrf_token(token, secret='Bearer'):
+	login_via_token(token, secret)
+	return frappe.session.get('csrf_token')
