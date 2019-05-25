@@ -3,4 +3,6 @@ from renovation_core.renovation_core.doctype.renovation_docfield.renovation_docf
 
 def execute():
     frappe.reload_doc('renovation_core', 'doctype', 'renovation_docfield', force=True)
+    frappe.reload_doc('renovation_core', 'doctype', 'renovation_docfield_user', force=True)
+    frappe.reload_doc('renovation_core', 'doctype', 'renovation_docfield_role_profile', force=True)
     add_all_reqd_table_fields()

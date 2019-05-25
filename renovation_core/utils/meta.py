@@ -63,6 +63,9 @@ def get_enabled_fields(doctype, user=None, role_profile=None):
 	if not role_profile:
 		role_profile = frappe.db.get_value('User', user, 'role_profile_name')
 	enabled_fields = set([x.fieldname for x in frappe.get_all("Renovation DocField", fields=["fieldname"], filters={"renovation_enabled": 1, "p_doctype": doctype})])
+	override_as_global = frappe.db.get_value('User', user, 'override_as_global')
+	if override_as_global:
+		return enabled_fields
 	if role_profile:
 		role_profile_enable, role_profile_disable = get_enable_and_disable_fields(doctype, 'Role Profile', 'role_profile', role_profile)
 		for f in role_profile_disable:
