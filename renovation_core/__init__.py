@@ -9,7 +9,6 @@ import frappe.api
 from .api import validate_api_key_secret
 
 
-
 __version__ = '0.6.3'
 
 
