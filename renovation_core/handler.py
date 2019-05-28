@@ -85,6 +85,7 @@ def execute_cmd(cmd, from_async=False):
 	if frappe.local.is_ajax and frappe.get_request_header("Authorization"):
 		token = frappe.get_request_header("Authorization").split(" ")[-1]
 		login_via_token(token)
+		frappe.response.token = token
 		frappe.response['docs'] = []
 
 	is_whitelisted(method)
