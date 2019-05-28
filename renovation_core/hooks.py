@@ -18,14 +18,14 @@ on_login = "renovation_core.on_login"
 # ------------------
 
 fixtures = [
-    {
+	{
 		"dt": "Custom Field",
 		"filters": [["app_name", "=", "renovation_core"]]
-    },
-    {
+	},
+	{
 		"dt": "Property Setter",
 		"filters": [["app_name", "=", "renovation_core"]]
-    }
+	}
 ]
 
 treeviews = ["Renovation Sidebar"]
@@ -95,11 +95,11 @@ after_install = "renovation_core.install.after_install.after_install"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	("Sales Invoice", "Sales Order", "Delivery Note"): {
-# 		"validate": "renovation_core.doc_events.invoice.validate"
-# 	}
-# }
+doc_events = {
+	"user": {
+		"before_save": "renovation_core.doc_eventd.user.before_save"
+	}
+}
 
 # Scheduled Tasks
 # ---------------

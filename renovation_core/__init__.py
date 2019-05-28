@@ -8,8 +8,7 @@ from .utils.sms_setting import validate_receiver_nos
 import frappe.handler
 from .handler import execute_cmd
 
-
-__version__ = '0.6.2'
+__version__ = '0.6.3'
 
 
 Meta.process = process

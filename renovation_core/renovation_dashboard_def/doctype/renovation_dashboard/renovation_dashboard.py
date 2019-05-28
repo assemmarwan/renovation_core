@@ -41,7 +41,7 @@ def get_context(**kwargs):
 		if self.exc_type == "cmd":
 			m['cmd'] = self.cmd
 		elif self.exc_type == "eval":
-			m['eval'] = self.eval
+			m['eval'] = self.eval_code
 		return m
 	
 	def get_chart_data(self, **kwargs):
@@ -52,13 +52,15 @@ def get_context(**kwargs):
 
 	def ready_chart_data(self, **kwargs):
 		cmd = self.cmd
-		if (self.exc_type == "cmd" and not cmd) or not self.eval:
+		if (self.exc_type == "cmd" and not cmd) or not self.eval_code:
 			cmd = os.path.join("{}.{}.{}.{}.{}".format(frappe.get_module_path(scrub(self.module)), scrub(self.doctype),
 			scrub(self.name), scrub(self.name), 'get_context'))
 			cmd = '.'.join(cmd.split('/')[-2:])
-		if self.exc_type == "eval" and not self.eval:
-			return eval(self.eval)
+		if self.exc_type == "eval" and self.eval_code:
+			return eval(self.eval_code)
 		else:
+			if kwargs.get('cmd'):
+				del kwargs['cmd']
 			return self.call_cmd(cmd, **kwargs)
 
 	def call_cmd(self,cmd, **kwargs):
