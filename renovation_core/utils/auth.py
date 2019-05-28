@@ -98,13 +98,12 @@ def pin_login(user, pin, device=None):
 
 @frappe.whitelist(allow_guest=True)
 def login_via_token(token, secret='Bearer'):
-	try:
-		valide_token = jwt.decode(token, secret)
-		if frappe.request.remote_addr !=valide_token.get('ip'):
-			raise frappe.InvalidSignatureError(_("Invalide Request"))
-		frappe.set_user(valide_token.get('sub'))
-	except Exception:
-		raise
+	valide_token = jwt.decode(token, secret)
+	if frappe.request.remote_addr !=valide_token.get('ip'):
+		raise frappe.InvalidSignatureError(_("Invalide Request"))
+	org_form_value = frappe.local.form_dict
+	frappe.set_user(valide_token.get('sub'))
+	frappe.local.form_dict = org_form_value
 
 
 @frappe.whitelist(allow_guest=True)
