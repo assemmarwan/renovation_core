@@ -61,32 +61,3 @@ def uploadfile():
 		if frappe.db.get_value(dt, dn):
 			frappe.db.set_value(dt, dn, df, ret.get("file_url"))
 	return ret
-
-
-def execute_cmd(cmd, from_async=False):
-	"""execute a request as python module"""
-	for hook in frappe.get_hooks("override_whitelisted_methods", {}).get(cmd, []):
-		# override using the first hook
-		cmd = hook
-		break
-
-	try:
-		method = get_attr(cmd)
-	except Exception as e:
-		if frappe.local.conf.developer_mode:
-			raise e
-		else:
-			frappe.respond_as_web_page(title='Invalid Method', html='Method not found',
-			indicator_color='red', http_status_code=404)
-		return
-
-	if from_async:
-		method = method.queue
-	if frappe.local.is_ajax and frappe.get_request_header("Authorization"):
-		token = frappe.get_request_header("Authorization").split(" ")[-1]
-		login_via_token(token)
-		frappe.response.token = token
-		frappe.response['docs'] = []
-
-	is_whitelisted(method)
-	return frappe.call(method, **frappe.form_dict)

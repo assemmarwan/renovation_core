@@ -57,6 +57,7 @@ def verify_sms_pin():
 			verify_pin = pin_from_db
 		
 	out = "no_pin_for_mobile"
+	token = None
 	if login:
 		out = "no_linked_user"
 	if verify_pin:
@@ -68,11 +69,12 @@ def verify_sms_pin():
 			if user:
 				l = LoginManager()
 				l.login_as(user)
+				token = make_jwt(user)
 			else:
 				out = "user_not_found"
 		
 	
-	update_http_response({"status": out, "mobile": mobile})
+	update_http_response({"status": out, "mobile": mobile, "token": token})
 
 def get_linked_user(mobile_no):
 	return frappe.db.get_value("User", filters={"mobile_no": mobile_no})
@@ -93,7 +95,7 @@ def pin_login(user, pin, device=None):
 	login.login_as(user)
 	if device:
 		clear_sessions(user, True, device)
-	return frappe.session.user
+	return make_jwt(user)
 
 
 @frappe.whitelist(allow_guest=True)
@@ -105,15 +107,14 @@ def get_token(user, pwd, expire_on=None, secret='Bearer'):
 		raise frappe.ValidationError(_("User Disable"))
 	
 	check_password(user, pwd)
+	return make_jwt(user, secret, expire_on)
 
+def make_jwt(user, secret='Bearer', expire_on=None):
 	if expire_on and not isinstance(expire_on, frappe.utils.datetime.datetime):
 		expire_on = frappe.utils.get_datetime(expire_on)
 	else:
 		expire_on = frappe.utils.datetime.datetime.today() + frappe.utils.datetime.timedelta(days=3)
-	token = make_jwt(user, secret, expire_on)
-	return token
 
-def make_jwt(user, secret, expire_on):
 	id_token_header = {
 		"typ":"jwt",
 		"alg":"HS256"
