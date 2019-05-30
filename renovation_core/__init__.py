@@ -3,12 +3,19 @@ from __future__ import unicode_literals
 from frappe.model.meta import Meta
 import frappe.model.sync
 from .utils.sync import _get_doc_files, process
+import frappe.core.doctype.sms_settings.sms_settings
+from .utils.sms_setting import validate_receiver_nos
+import frappe.api
+from .api import validate_api_key_secret
 
-__version__ = '11.1.11'
+
+__version__ = '0.6.3'
 
 
 Meta.process = process
 frappe.model.sync.get_doc_files = _get_doc_files
+frappe.core.doctype.sms_settings.sms_settings.validate_receiver_nos = validate_receiver_nos
+frappe.api.validate_api_key_secret = validate_api_key_secret
 
 
 def clear_cache():
@@ -31,7 +38,8 @@ def append_user_info_to_response(user):
     "message": "Logged In",
     "home_page": "/desk",
     "full_name": user_details[1],
-    "has_quick_login_pin": user_details[2] != None
+    "has_quick_login_pin": user_details[2] != None,
+    "lang": frappe.translate.get_user_lang()
   })
 
   for method in frappe.get_hooks().get("renovation_login_response", []):

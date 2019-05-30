@@ -17,10 +17,14 @@ class RenovationDocField(Document):
 
     def autoname(self):
         self.name = self.p_doctype + "-" + self.fieldname
+    
+    def on_update(self):
+        clear_meta_cache(self.p_doctype)
 
 
-def toggle_enabled(doctype, fieldname, enabled=0):
-    clear_meta_cache(doctype)
+
+def toggle_enabled(doctype, fieldname, enabled=0, user=None, role_profile=None, ignore_parent_update=False):
+    value_changed =False
     # get doc 
     existing = frappe.get_list("Renovation DocField", filters={
         "p_doctype": doctype,
@@ -33,9 +37,42 @@ def toggle_enabled(doctype, fieldname, enabled=0):
         doc = frappe.new_doc("Renovation DocField")
         doc.p_doctype = doctype
         doc.fieldname = fieldname
+        doc.renovation_enabled = 0 if ignore_parent_update else enabled
+        value_changed = True
+    # User Enable/Disable
+    if user:
+        doc, value_changed = update_child_values(doc, 'users', 'user', user, enabled, value_changed)
     
-    doc.renovation_enabled = enabled
-    doc.save()
+    # Role Profile Enable/Disable
+    if role_profile:
+        doc, value_changed = update_child_values(doc, 'role_profiles', 'role_profile', role_profile, enabled, value_changed)
+
+    # Global Enable/Disable
+    if not ignore_parent_update and doc.renovation_enabled != enabled:
+        doc.renovation_enabled = enabled
+        value_changed = True
+    if value_changed:
+        doc.save()
+
+def update_child_values(doc, chielfield, cfield, cfval, enabled, value_changed=False):
+    cdocs = doc.as_dict().get(chielfield, [])
+    got_cfield = False
+    for cdoc in cdocs:
+        if cdoc.get(cfield) == cfval:
+            got_cfield = True
+            if cdoc.enabled != enabled:
+                value_changed = True
+                cdoc.enabled = enabled
+            break
+    if not got_cfield:
+        cdocs.append({
+            cfield: cfval,
+            "enabled": enabled
+        })
+        value_changed = True
+    if value_changed:
+        doc.set(chielfield, cdocs)
+    return doc, value_changed
 
 
 @frappe.whitelist()
@@ -56,7 +93,7 @@ def add_all_reqd_table_fields(doctypes=None):
     for i in range(0, len(doctypes), batch_size):
         for doctype in doctypes[i:i + batch_size]:
             meta = frappe.get_meta(doctype)
-            fields = [[f.fieldname, f.name]  for f in meta.get("fields") if f.fieldname and (f.reqd or f.fieldtype=="Table" or (meta.istable and f.in_list_view))]
+            fields = [[f.fieldname, f.name]  for f in meta.get("fields") if f.get('fieldname')]
             for field in fields:
                 if field[0] in existing_fields.get(doctype, []):
                     continue
@@ -68,3 +105,8 @@ def add_all_reqd_table_fields(doctypes=None):
                 })
                 doc.insert()
         frappe.db.commit()
+
+
+@frappe.whitelist()
+def get_fields_label(doctype):
+    return [{"value":x.fieldname, "label":x.label or x.fieldname} for x in frappe.get_meta(doctype).fields if x.get('fieldname')]

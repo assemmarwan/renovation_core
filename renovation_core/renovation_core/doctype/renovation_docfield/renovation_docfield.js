@@ -20,7 +20,7 @@ frappe.ui.form.on('Renovation DocField', {
 		}
 		var fieldname = frm.doc.fieldname || null;
 		return frappe.call({
-			method: 'frappe.custom.doctype.custom_field.custom_field.get_fields_label',
+			method: 'renovation_core.renovation_core.doctype.renovation_docfield.renovation_docfield.get_fields_label',
 			args: { doctype: frm.doc.p_doctype, fieldname: frm.doc.fieldname },
 			callback: function(r, rt) {
 				set_field_options('fieldname', r.message);
