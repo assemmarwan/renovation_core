@@ -97,16 +97,6 @@ def pin_login(user, pin, device=None):
 
 
 @frappe.whitelist(allow_guest=True)
-def login_via_token(token, secret='Bearer'):
-	valide_token = jwt.decode(token, secret)
-	if frappe.request.remote_addr !=valide_token.get('ip'):
-		raise frappe.InvalidSignatureError(_("Invalide Request"))
-	org_form_value = frappe.local.form_dict
-	frappe.set_user(valide_token.get('sub'))
-	frappe.local.form_dict = org_form_value
-
-
-@frappe.whitelist(allow_guest=True)
 def get_token(user, pwd, expire_on=None, secret='Bearer'):
 	if not frappe.db.exists("User", user):
 		raise frappe.ValidationError(_("Invalide User"))
@@ -135,9 +125,3 @@ def make_jwt(user, secret, expire_on):
 	}
 	token_encoded = jwt.encode(id_token, secret, algorithm='HS256', headers=id_token_header)
 	return token_encoded
-
-
-@frappe.whitelist(allow_guest=True)
-def get_csrf_token(token, secret='Bearer'):
-	login_via_token(token, secret)
-	return frappe.session.get('csrf_token')

@@ -5,16 +5,19 @@ import frappe.model.sync
 from .utils.sync import _get_doc_files, process
 import frappe.core.doctype.sms_settings.sms_settings
 from .utils.sms_setting import validate_receiver_nos
-import frappe.handler
-from .handler import execute_cmd
+
 
 __version__ = '0.6.3'
+__title__ = 'Renovaiton Core'
 
 
 Meta.process = process
 frappe.model.sync.get_doc_files = _get_doc_files
 frappe.core.doctype.sms_settings.sms_settings.validate_receiver_nos = validate_receiver_nos
-frappe.handler.execute_cmd = execute_cmd
+
+import frappe.app
+from .app import init_request
+frappe.app.init_request.__code__ = init_request.__code__
 
 
 def clear_cache():
@@ -43,6 +46,7 @@ def append_user_info_to_response(user):
 
   for method in frappe.get_hooks().get("renovation_login_response", []):
     frappe.call(frappe.get_attr(method), user=user)
+
 
 @frappe.whitelist()
 def get_logged_user():
