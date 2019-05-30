@@ -8,11 +8,13 @@ def get_sidebar(parent = None):
 	cache_sidebar = frappe.cache().hget('renovation_sidbar', parent)
 	if not cache_sidebar:
 		cache_sidebar = get_user_sidebar(parent)
-		frappe.cache().hset('renovation_sidbar', parent or 'Global', cache_sidebar)
+		frappe.cache().hset('renovation_sidbar', parent, cache_sidebar)
 	return cache_sidebar
 
 
 def get_user_sidebar(parent):
+	if not frappe.db.exists("Renovation Sidebar", parent):
+		return []
 	data= get_data(parent)
 	rows =[]
 	return process_data(data, rows, parent)
