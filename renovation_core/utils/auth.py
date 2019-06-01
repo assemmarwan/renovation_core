@@ -95,11 +95,11 @@ def pin_login(user, pin, device=None):
 	login.login_as(user)
 	if device:
 		clear_sessions(user, True, device)
-	return make_jwt(user)
+	return frappe.session.user
 
 
 @frappe.whitelist(allow_guest=True)
-def get_token(user, pwd, expire_on=None, secret='Bearer'):
+def get_token(user, pwd, expire_on=None):
 	if not frappe.db.exists("User", user):
 		raise frappe.ValidationError(_("Invalide User"))
 	doc = frappe.get_doc('User', user)
@@ -107,9 +107,11 @@ def get_token(user, pwd, expire_on=None, secret='Bearer'):
 		raise frappe.ValidationError(_("User Disable"))
 	
 	check_password(user, pwd)
-	return make_jwt(user, secret, expire_on)
+	return make_jwt(user, expire_on)
 
-def make_jwt(user, secret='Bearer', expire_on=None):
+def make_jwt(user, expire_on=None, secret=None):
+	if not secret:
+		secret = frappe.utils.password.get_encryption_key()
 	if expire_on and not isinstance(expire_on, frappe.utils.datetime.datetime):
 		expire_on = frappe.utils.get_datetime(expire_on)
 	else:

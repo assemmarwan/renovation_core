@@ -27,10 +27,12 @@ def clear_cache():
 
 def on_login(login_manager):
   import frappe.permissions
+  from .utils.auth import make_jwt
 
   append_user_info_to_response(login_manager.user)
   if "recursive_delete" not in frappe.permissions.rights:
     frappe.permissions.rights += ("recursive_delete",)
+  frappe.local.response['token'] = make_jwt(login_manager.user)
 
 
 def append_user_info_to_response(user):
