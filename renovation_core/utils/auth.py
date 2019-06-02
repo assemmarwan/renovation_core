@@ -57,7 +57,6 @@ def verify_sms_pin():
 			verify_pin = pin_from_db
 		
 	out = "no_pin_for_mobile"
-	token = None
 	if login:
 		out = "no_linked_user"
 	if verify_pin:
@@ -69,12 +68,11 @@ def verify_sms_pin():
 			if user:
 				l = LoginManager()
 				l.login_as(user)
-				token = make_jwt(user)
 			else:
 				out = "user_not_found"
 		
 	
-	update_http_response({"status": out, "mobile": mobile, "token": token})
+	update_http_response({"status": out, "mobile": mobile})
 
 def get_linked_user(mobile_no):
 	return frappe.db.get_value("User", filters={"mobile_no": mobile_no})
