@@ -2,13 +2,24 @@ import frappe
 
 
 @frappe.whitelist()
-def get_sidebar(parent = None):
-	if not parent:
-		parent = 'All'
-	cache_sidebar = frappe.cache().hget('renovation_sidbar', parent)
+def get_sidebar(user=None):
+	if not user:
+		user = frappe.session.user
+	cache_sidebar = frappe.cache().hget('renovation_sidebar', user)
 	if not cache_sidebar:
-		cache_sidebar = get_user_sidebar(parent)
-		frappe.cache().hset('renovation_sidbar', parent, cache_sidebar)
+		parents = ['All']
+		if frappe.db.exists('Renovation Sidebar', {'parent_renovation_sidebar': 'User', 'renovation_sidebar_name': user}):
+			parents.append(frappe.db.get_value('Renovation Sidebar', {'parent_renovation_sidebar': 'User', 'renovation_sidebar_name': user}))
+		role_profile = frappe.db.get_value('User', user, 'role_profile_name')
+		if role_profile and frappe.db.exists('Renovation Sidebar', {'parent_renovation_sidebar': 'Role Profile', 'renovation_sidebar_name': role_profile}):
+			parents.append(frappe.db.get_value('Renovation Sidebar', {'parent_renovation_sidebar': 'Role Profile', 'renovation_sidebar_name': role_profile}))
+		
+		roles = frappe.get_roles(user)
+		parents += [x.name for x in frappe.get_all('Renovation Sidebar', {'parent_renovation_sidebar': 'Role', 'renovation_sidebar_name': ('in', roles)})]
+		cache_sidebar = {}
+		for parent in parents:
+			cache_sidebar[parent] = get_user_sidebar(parent)
+		frappe.cache().hset('renovation_sidebar', user, cache_sidebar)
 	return cache_sidebar
 
 

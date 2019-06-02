@@ -20,4 +20,4 @@ class RenovationSidebar(NestedSet):
 		if self.is_group:
 			keys.append(self.name)
 		for key in keys:
-			frappe.cache().hdel('renovation_sidbar', key)
+			frappe.cache().hdel('renovation_sidebar', key)
