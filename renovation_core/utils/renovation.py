@@ -16,18 +16,32 @@ def get_sidebar(user=None):
 		
 		roles = frappe.get_roles(user)
 		parents += [x.name for x in frappe.get_all('Renovation Sidebar', {'parent_renovation_sidebar': 'Role', 'renovation_sidebar_name': ('in', roles)})]
-		cache_sidebar = {}
+		cache_sidebar = []
 		for parent in parents:
-			cache_sidebar[parent] = get_user_sidebar(parent)
+			doc = frappe.get_doc('Renovation Sidebar', parent)
+			data = process_data([frappe._dict({
+				"title": doc.renovation_sidebar_name,
+				"tooltip": doc.tooltip,
+				"is_group": 0,
+				"type": doc.type,
+				"target": doc.link if doc.type=="Link" else doc.target,
+				"name": doc.name,
+				"parent": doc.parent_renovation_sidebar,
+				"include_from": ",".join([x.sidebar_group for x in doc.get('include_from', [])])
+			})], [], doc.parent_renovation_sidebar),
+			data[0][0].setdefault('children', [])
+			data[0][0]['children'] = get_user_sidebar(parent, data[0][0]['children'])
+			cache_sidebar += data
 		frappe.cache().hset('renovation_sidebar', user, cache_sidebar)
 	return cache_sidebar
 
 
-def get_user_sidebar(parent):
+def get_user_sidebar(parent, rows=None):
 	if not frappe.db.exists("Renovation Sidebar", parent):
 		return []
 	data= get_data(parent)
-	rows =[]
+	if not rows:
+		rows =[]
 	return process_data(data, rows, parent)
 
 
@@ -73,5 +87,8 @@ def process_data(data, rows, key=None):
 					data.append(obj)
 					edchild = dchild[-1].setdefault('children', [])
 					process_data(data, edchild, p)
+			del d['include_from']
+			del d['parent']
+			del d['name']
 			rows.append(d)
 	return rows
