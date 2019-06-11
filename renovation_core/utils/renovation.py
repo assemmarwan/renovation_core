@@ -32,6 +32,7 @@ def get_sidebar(user=None):
 			})], data, doc.parent_renovation_sidebar),
 			data[0].setdefault('children', [])
 			data[0]['children'] = get_user_sidebar(parent, data[0]['children'])
+			data[0]['is_group'] = doc.is_group
 			cache_sidebar += data
 		frappe.cache().hset('renovation_sidebar', user, cache_sidebar)
 	return cache_sidebar
