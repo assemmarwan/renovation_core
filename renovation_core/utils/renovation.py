@@ -18,22 +18,7 @@ def get_sidebar(user=None):
 		parents += [x.name for x in frappe.get_all('Renovation Sidebar', {'parent_renovation_sidebar': 'Role', 'renovation_sidebar_name': ('in', roles)})]
 		cache_sidebar = []
 		for parent in parents:
-			doc = frappe.get_doc('Renovation Sidebar', parent)
-			data = []
-			process_data([frappe._dict({
-				"title": doc.renovation_sidebar_name,
-				"tooltip": doc.tooltip,
-				"is_group": 0,
-				"type": doc.type,
-				"target": doc.link if doc.type=="Link" else doc.target,
-				"name": doc.name,
-				"parent": doc.parent_renovation_sidebar,
-				"include_from": ",".join([x.sidebar_group for x in doc.get('include_from', [])])
-			})], data, doc.parent_renovation_sidebar),
-			data[0].setdefault('children', [])
-			data[0]['children'] = get_user_sidebar(parent, data[0]['children'])
-			data[0]['is_group'] = doc.is_group
-			cache_sidebar += data
+			cache_sidebar += get_user_sidebar(parent)
 		frappe.cache().hset('renovation_sidebar', user, cache_sidebar)
 	return cache_sidebar
 
