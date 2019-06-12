@@ -8,8 +8,11 @@
 #### Modify:
 #### Remove:
 
+### v0.6.4 - 11th Jun 2019
+* Added Renovation Sidebar Feature.
 
-### v0.6.3 - Unreleased
+
+### v0.6.3 -
 ---
 
 #### New:
