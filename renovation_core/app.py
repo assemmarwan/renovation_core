@@ -1,5 +1,8 @@
+from __future__ import unicode_literals
+
 import frappe
-from frappe.app import make_form_dict, _site, _sites_path, get_site_name, NotFound
+from frappe.app import make_form_dict, get_site_name, NotFound, _site, _sites_path
+
 
 def init_request(request):
 	import renovation_core.auth

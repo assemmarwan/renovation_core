@@ -15,10 +15,6 @@ Meta.process = process
 frappe.model.sync.get_doc_files = _get_doc_files
 frappe.core.doctype.sms_settings.sms_settings.validate_receiver_nos = validate_receiver_nos
 
-import frappe.app
-from .app import init_request
-frappe.app.init_request.__code__ = init_request.__code__
-
 
 def clear_cache():
   from .utils.meta import clear_all_meta_cache
