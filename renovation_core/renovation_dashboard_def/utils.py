@@ -85,3 +85,19 @@ def get_column(doctype):
         column = "`tab{0}`.name as name, `tab{0}`.title as title".format(doctype)
 
     return column
+
+
+def clear_cache_on_doc_events(doc, method):
+    if doc.doctype == "Renovation Dashboard":
+        frappe.cache().hdel('dashboard', "%s_meta"%doc.name)
+    else:
+        for dashboard in get_dashboards_for_clear_cahe(doc.doctype):
+            frappe.cache().hdel('dashboard', dashboard)
+
+
+def get_dashboards_for_clear_cahe(doctype):
+    if frappe.cache().hget('dashboard_list:puge_cache', doctype):
+        return frappe.cache().hget('dashboard_list:puge_cache', doctype)
+    data = [x.parent for x in frappe.get_all('Renovation Purge Cache', {'link_doctype': doctype, 'parenttype': 'Renovation Dashboard'}, 'parent')]
+    frappe.cache().hset('dashboard_list:puge_cache', doctype, data)
+    return data

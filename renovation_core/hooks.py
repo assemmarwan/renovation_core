@@ -98,6 +98,12 @@ after_install = "renovation_core.install.after_install.after_install"
 doc_events = {
 	"user": {
 		"before_save": "renovation_core.doc_eventd.user.before_save"
+	},
+	"*": {
+		"on_update":"renovation_core.renovation_dashboard_def.utils.clear_cache_on_doc_events",
+		"on_cancel":"renovation_core.renovation_dashboard_def.utils.clear_cache_on_doc_events",
+		"on_trash":"renovation_core.renovation_dashboard_def.utils.clear_cache_on_doc_events",
+		"on_update_after_submit":"renovation_core.renovation_dashboard_def.utils.clear_cache_on_doc_events"
 	}
 }
 
