@@ -119,18 +119,17 @@ def make_jwt(user, expire_on=None, secret=None):
 		secret = frappe.utils.password.get_encryption_key()
 	if expire_on and not isinstance(expire_on, frappe.utils.datetime.datetime):
 		expire_on = frappe.utils.get_datetime(expire_on)
-	else:
-		expire_on = frappe.utils.datetime.datetime.today() + frappe.utils.datetime.timedelta(days=3)
 
 	id_token_header = {
 		"typ":"jwt",
 		"alg":"HS256"
 	}
 	id_token = {
-		"exp": int(( expire_on - frappe.utils.datetime.datetime(1970, 1, 1)).total_seconds()),
 		"sub": user,
 		"ip": frappe.request.remote_addr,
 		"sid": frappe.session.get('sid')
 	}
+	if expire_on:
+		id_token['exp'] = int(( expire_on - frappe.utils.datetime.datetime(1970, 1, 1)).total_seconds())
 	token_encoded = jwt.encode(id_token, secret, algorithm='HS256', headers=id_token_header)
 	return token_encoded
