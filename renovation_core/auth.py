@@ -36,18 +36,17 @@ class HTTPRequestExtend(HTTPRequest):
 		self.connect()
 
 		# login
-		frappe.local.login_manager = LoginManager()
 		if frappe.local.is_ajax and frappe.get_request_header("Authorization"):
 			token_header = frappe.get_request_header(
 				"Authorization").split(" ")
 			token = token_header[-1]
 			token_info = jwt.decode(token, frappe.utils.password.get_encryption_key())
 			if token_info.get('ip') != frappe.local.request_ip:
-				frappe.throw(
-					frappe._("Invalide IP", frappe.AuthenticationError))
-			frappe.local.login_manager.login_as(token_info.get('sub'))
+				frappe.throw(frappe._("Invalide IP", frappe.AuthenticationError))
+			frappe.form_dict['sid'] = token_info.get('sid')
 			frappe.local.cookie_manager = CookingManagerExtendand()
-		else:
+		frappe.local.login_manager = LoginManager()
+		if not (frappe.local.is_ajax and frappe.get_request_header("Authorization")):
 			self.validate_csrf_token()
 
 		if frappe.form_dict._lang:

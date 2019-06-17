@@ -97,17 +97,24 @@ def pin_login(user, pin, device=None):
 
 
 @frappe.whitelist(allow_guest=True)
-def get_token(user, pwd, expire_on=None):
+def get_token(user, pwd, expire_on=None, device=None):
 	if not frappe.db.exists("User", user):
 		raise frappe.ValidationError(_("Invalide User"))
-	doc = frappe.get_doc('User', user)
-	if not doc.enabled:
-		raise frappe.ValidationError(_("User Disable"))
 	
-	check_password(user, pwd)
+	from frappe.sessions import clear_sessions
+	login = LoginManager()
+	login.check_if_enabled(user)
+	if not check_password(user, pwd):
+		login.fail('Incorrect password', user=user)
+	login.login_as(user)
+	clear_sessions(user, True, device)
+
 	return make_jwt(user, expire_on)
 
+
 def make_jwt(user, expire_on=None, secret=None):
+	if not frappe.session.get('sid') or frappe.session.sid=="Guest":
+		return
 	if not secret:
 		secret = frappe.utils.password.get_encryption_key()
 	if expire_on and not isinstance(expire_on, frappe.utils.datetime.datetime):
@@ -122,7 +129,8 @@ def make_jwt(user, expire_on=None, secret=None):
 	id_token = {
 		"exp": int(( expire_on - frappe.utils.datetime.datetime(1970, 1, 1)).total_seconds()),
 		"sub": user,
-		"ip": frappe.request.remote_addr
+		"ip": frappe.request.remote_addr,
+		"sid": frappe.session.get('sid')
 	}
 	token_encoded = jwt.encode(id_token, secret, algorithm='HS256', headers=id_token_header)
 	return token_encoded
