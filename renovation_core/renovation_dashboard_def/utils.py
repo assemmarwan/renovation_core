@@ -20,6 +20,17 @@ def get_all_dashboard_data(user=None, meta=False, **kwargs):
 
 
 @frappe.whitelist(allow_guest=True)
+def get_dashboard_data(dashboard, user=None, no_meta=False, **kwargs):
+    if no_meta:
+        return get_dashboard(dashboard, user, **kwargs)
+    else:
+        return {
+            "meta": get_dashboard(dashboard, user, True, **kwargs),
+            "data": get_dashboard(dashboard, user, **kwargs)
+        }
+
+
+@frappe.whitelist(allow_guest=True)
 def get_dashboard(dashboard, user=None, meta=False, dashboards=None, **kwargs):
     if not dashboards:
         dashboards = get_permitted_dashboard(user=user)
