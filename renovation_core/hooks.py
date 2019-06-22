@@ -13,6 +13,7 @@ app_license = "MIT"
 
 clear_cache = "renovation_core.clear_cache"
 on_login = "renovation_core.on_login"
+on_session_creation = "renovation_core.on_session_creation"
 
 # Includes in <head>
 # ------------------

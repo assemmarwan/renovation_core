@@ -68,6 +68,8 @@ def verify_sms_pin():
 			if user:
 				l = LoginManager()
 				l.login_as(user)
+				l.resume = False
+				l.run_trigger('on_session_creation')
 			else:
 				out = "user_not_found"
 		
@@ -91,6 +93,8 @@ def pin_login(user, pin, device=None):
 		login.fail('Incorrect password', user=user)
 		
 	login.login_as(user)
+	login.resume = False
+	login.run_trigger('on_session_creation')
 	if device:
 		clear_sessions(user, True, device)
 	return frappe.session.user
@@ -107,9 +111,12 @@ def get_token(user, pwd, expire_on=None, device=None):
 	if not check_password(user, pwd):
 		login.fail('Incorrect password', user=user)
 	login.login_as(user)
+	login.resume = False
+	login.run_trigger('on_session_creation')
 	clear_sessions(user, True, device)
-
-	return make_jwt(user, expire_on)
+	if expire_on:
+		frappe.flags.jwt_expire_on = expire_on
+		
 
 
 def make_jwt(user, expire_on=None, secret=None):

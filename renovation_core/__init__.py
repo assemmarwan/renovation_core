@@ -22,14 +22,17 @@ def clear_cache():
 
 def on_login(login_manager):
   import frappe.permissions
-  from .utils.auth import make_jwt
 
   append_user_info_to_response(login_manager.user)
   if "recursive_delete" not in frappe.permissions.rights:
     frappe.permissions.rights += ("recursive_delete",)
+
+def on_session_creation(login_manager):
+  from .utils.auth import make_jwt
   if frappe.form_dict.get('use_jwt'):
+    frappe.local.response['token'] = make_jwt(login_manager.user, frappe.flags.get('jwt_expire_on'))
     frappe.local.response['sid'] = frappe.session.sid
-    frappe.local.response['token'] = frappe.flags.get('jwt') or frappe.get_request_header("Authorization") or make_jwt(login_manager.user)
+
 
 
 def append_user_info_to_response(user):
