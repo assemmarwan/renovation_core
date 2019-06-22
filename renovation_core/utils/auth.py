@@ -132,4 +132,5 @@ def make_jwt(user, expire_on=None, secret=None):
 	if expire_on:
 		id_token['exp'] = int(( expire_on - frappe.utils.datetime.datetime(1970, 1, 1)).total_seconds())
 	token_encoded = jwt.encode(id_token, secret, algorithm='HS256', headers=id_token_header)
+	frappe.flags.jwt = token_encoded
 	return token_encoded

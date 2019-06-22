@@ -27,8 +27,9 @@ def on_login(login_manager):
   append_user_info_to_response(login_manager.user)
   if "recursive_delete" not in frappe.permissions.rights:
     frappe.permissions.rights += ("recursive_delete",)
-  if frappe.local.is_ajax and frappe.get_request_header("Authorization"):
-    frappe.local.response['token'] = make_jwt(login_manager.user)
+  if frappe.form_dict.get('use_jwt'):
+    frappe.local.response['sid'] = frappe.session.sid
+    frappe.local.response['token'] = frappe.flags.get('jwt') or frappe.get_request_header("Authorization") or make_jwt(login_manager.user)
 
 
 def append_user_info_to_response(user):

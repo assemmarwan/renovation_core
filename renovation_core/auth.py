@@ -40,6 +40,7 @@ class HTTPRequestExtend(HTTPRequest):
 			token_header = frappe.get_request_header(
 				"Authorization").split(" ")
 			token = token_header[-1]
+			frappe.flags.jwt = token
 			token_info = jwt.decode(token, frappe.utils.password.get_encryption_key())
 			if token_info.get('ip') != frappe.local.request_ip:
 				frappe.throw(frappe._("Invalide IP", frappe.AuthenticationError))
