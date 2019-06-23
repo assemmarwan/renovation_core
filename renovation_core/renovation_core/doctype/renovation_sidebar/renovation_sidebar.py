@@ -16,8 +16,5 @@ class RenovationSidebar(NestedSet):
 	
 	def on_update(self):
 		super(RenovationSidebar, self).on_update()
-		keys = [self.get(self.nsm_parent_field), 'All Renovation Sidebar']
-		if self.is_group:
-			keys.append(self.name)
-		for key in keys:
-			frappe.cache().hdel('renovation_sidebar', key)
+		for k in frappe.cache().hkeys("renovation_sidebar"):
+			frappe.cache().hdel("renovation_sidebar", k)
