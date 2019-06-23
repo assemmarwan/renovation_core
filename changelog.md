@@ -8,6 +8,11 @@
 #### Modify:
 #### Remove:
 
+### v0.6.5 - 11th Jun 2019
+* Modify Sidebar: Now base on p_type and p_name
+* Added JWT Feature.
+
+
 ### v0.6.4 - 11th Jun 2019
 * Added Renovation Sidebar Feature.
 
