@@ -13,6 +13,7 @@ app_license = "MIT"
 
 clear_cache = "renovation_core.clear_cache"
 on_login = "renovation_core.on_login"
+on_session_creation = "renovation_core.on_session_creation"
 
 # Includes in <head>
 # ------------------
@@ -133,5 +134,7 @@ doc_events = {
 override_whitelisted_methods = {
 	"frappe.auth.get_logged_user": "renovation_core.get_logged_user",
 	"renovation": "renovation_core.handler.handler",
+	"frappe.desk.form.save.savedocs": "renovation_core.utils.save.savedocs",
+	"frappe.integrations.oauth2.openid_profile": "renovation_core.utils.oauth2.openid_profile_endpint"
 }
 

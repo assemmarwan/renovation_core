@@ -5,8 +5,6 @@ import frappe.model.sync
 from .utils.sync import _get_doc_files, process
 import frappe.core.doctype.sms_settings.sms_settings
 from .utils.sms_setting import validate_receiver_nos
-import frappe.api
-from .api import validate_api_key_secret
 
 
 __version__ = '0.6.4'
@@ -15,7 +13,6 @@ __version__ = '0.6.4'
 Meta.process = process
 frappe.model.sync.get_doc_files = _get_doc_files
 frappe.core.doctype.sms_settings.sms_settings.validate_receiver_nos = validate_receiver_nos
-frappe.api.validate_api_key_secret = validate_api_key_secret
 
 
 def clear_cache():
@@ -29,6 +26,13 @@ def on_login(login_manager):
   append_user_info_to_response(login_manager.user)
   if "recursive_delete" not in frappe.permissions.rights:
     frappe.permissions.rights += ("recursive_delete",)
+
+def on_session_creation(login_manager):
+  from .utils.auth import make_jwt
+  if frappe.form_dict.get('use_jwt'):
+    frappe.local.response['token'] = make_jwt(login_manager.user, frappe.flags.get('jwt_expire_on'))
+    frappe.local.response['sid'] = frappe.session.sid
+
 
 
 def append_user_info_to_response(user):
@@ -44,6 +48,7 @@ def append_user_info_to_response(user):
 
   for method in frappe.get_hooks().get("renovation_login_response", []):
     frappe.call(frappe.get_attr(method), user=user)
+
 
 @frappe.whitelist()
 def get_logged_user():
