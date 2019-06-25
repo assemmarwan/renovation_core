@@ -37,7 +37,7 @@ def get_dashboard(dashboard, user=None, meta=False, dashboards=None, **kwargs):
     if dashboard not in dashboards.keys():
         raise frappe.PermissionError
     cache_key = dashboard if not meta else "{}_meta".format(dashboard)
-    if frappe.cache().hget('dashboard:{}'.format(cache_key), user):
+    if frappe.cache().hget('dashboard', cache_key):
         return frappe.cache().hget('dashboard', cache_key)
     doc = frappe.get_doc("Renovation Dashboard", dashboard)
     if meta:
