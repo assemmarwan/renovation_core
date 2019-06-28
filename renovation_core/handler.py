@@ -5,7 +5,7 @@ from frappe.handler import uploadfile as uf
 # erpnext will be updated to py3, if done the otherway, this will break
 from .utils.doc import doc_handler
 from .utils.report import get_report
-from .utils.auth import generate_sms_pin, verify_sms_pin, login_via_token
+from .utils.auth import generate_sms_pin, verify_sms_pin
 from .utils import get_request_method, get_request_path, update_http_response
 from frappe.handler import get_attr, is_whitelisted
 from six import string_types
