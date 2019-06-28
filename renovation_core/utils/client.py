@@ -2,7 +2,7 @@ import frappe
 
 @frappe.whitelist(allow_guest=True)
 def get_current_user_roles():
-  return frappe.get_roles()
+  return frappe.get_roles(frappe.session.user)
 
 @frappe.whitelist(allow_guest=True)
 def get_current_user_permissions():
