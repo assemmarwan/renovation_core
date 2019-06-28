@@ -133,7 +133,7 @@ def make_jwt(user, expire_on=None, secret=None):
 	}
 	id_token = {
 		"sub": user,
-		"ip": frappe.request.remote_addr,
+		"ip": frappe.local.request_ip,
 		"sid": frappe.session.get('sid')
 	}
 	if expire_on:
