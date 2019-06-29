@@ -1,25 +1,50 @@
 import frappe
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
+def get_all_dashboard_meta(user=None, **kwargs):
+    return get_all_dashboard_data(user, True, **kwargs)
+
+
+@frappe.whitelist(allow_guest=True)
 def get_all_dashboards(user=None, **kwargs):
-    dashboards = get_permitted_dashboard()
+    return get_all_dashboard_data(user, False, **kwargs)
+
+
+def get_all_dashboard_data(user=None, meta=False, **kwargs):
+    dashboards = get_permitted_dashboard(user=user)
     all_dashboards={}
     for d in dashboards.keys():
-        all_dashboards[d] = get_dashboard(d)
+        all_dashboards[d] = get_dashboard(d, user, meta, dashboards)
     return all_dashboards
 
 
-@frappe.whitelist()
-def get_dashboard(dashboard, user=None, **kwargs):
-    dashboards = get_permitted_dashboard()
+@frappe.whitelist(allow_guest=True)
+def get_dashboard_data(dashboard, user=None, no_meta=False, **kwargs):
+    if no_meta:
+        return get_dashboard(dashboard, user, **kwargs)
+    else:
+        return {
+            "meta": get_dashboard(dashboard, user, True, **kwargs),
+            "data": get_dashboard(dashboard, user, **kwargs)
+        }
+
+
+@frappe.whitelist(allow_guest=True)
+def get_dashboard(dashboard, user=None, meta=False, dashboards=None, **kwargs):
+    if not dashboards:
+        dashboards = get_permitted_dashboard(user=user)
     if dashboard not in dashboards.keys():
         raise frappe.PermissionError
-    if frappe.cache().hget('dashboard:{}'.format(dashboard), user):
-        return frappe.cache().hget('dashboard', dashboard)
+    cache_key = dashboard if not meta else "{}_meta".format(dashboard)
+    if frappe.cache().hget('dashboard', cache_key):
+        return frappe.cache().hget('dashboard', cache_key)
     doc = frappe.get_doc("Renovation Dashboard", dashboard)
-    data = doc.get_chart_data(**kwargs)
-    frappe.cache().hset('dashboard', dashboard, data)
+    if meta:
+        data = doc.get_chart_meta(**kwargs)
+    else:
+        data = doc.ready_chart_data(**kwargs)
+    frappe.cache().hset('dashboard', cache_key, data)
     return data
 
 
@@ -71,3 +96,20 @@ def get_column(doctype):
         column = "`tab{0}`.name as name, `tab{0}`.title as title".format(doctype)
 
     return column
+
+
+def clear_cache_on_doc_events(doc, method):
+    if doc.doctype == "Renovation Dashboard":
+        frappe.cache().hdel('dashboard', "%s_meta"%doc.name)
+    else:
+        for dashboard in get_dashboards_for_clear_cahe(doc.doctype):
+            frappe.cache().hdel('dashboard', dashboard)
+
+
+def get_dashboards_for_clear_cahe(doctype):
+    cache_key = '_{}_puge_cache'.format(doctype)
+    if frappe.cache().hget('dashboard', cache_key):
+        return frappe.cache().hget('dashboard', cache_key)
+    data = [x.parent for x in frappe.get_all('Renovation Purge Cache', {'link_doctype': doctype, 'parenttype': 'Renovation Dashboard'}, 'parent')]
+    frappe.cache().hset('dashboard', cache_key, data)
+    return data
