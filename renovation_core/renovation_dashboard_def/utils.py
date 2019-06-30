@@ -1,117 +1,82 @@
 import frappe
 
 
-@frappe.whitelist(allow_guest=True)
-def get_all_dashboard_meta(user=None, **kwargs):
-    return get_all_dashboard_data(user, True, **kwargs)
+def get_docs_with_role(doctype, fields, condition="", order_by="", user=None, include_if_no_role=False):
+    if not user:
+        user = frappe.session.user
 
-
-@frappe.whitelist(allow_guest=True)
-def get_all_dashboards(user=None, **kwargs):
-    return get_all_dashboard_data(user, False, **kwargs)
-
-
-def get_all_dashboard_data(user=None, meta=False, **kwargs):
-    dashboards = get_permitted_dashboard(user=user)
-    all_dashboards={}
-    for d in dashboards.keys():
-        all_dashboards[d] = get_dashboard(d, user, meta, dashboards)
-    return all_dashboards
-
-
-@frappe.whitelist(allow_guest=True)
-def get_dashboard_data(dashboard, user=None, no_meta=False, **kwargs):
-    if no_meta:
-        return get_dashboard(dashboard, user, **kwargs)
-    else:
-        return {
-            "meta": get_dashboard(dashboard, user, True, **kwargs),
-            "data": get_dashboard(dashboard, user, **kwargs)
-        }
-
-
-@frappe.whitelist(allow_guest=True)
-def get_dashboard(dashboard, user=None, meta=False, dashboards=None, **kwargs):
-    if not dashboards:
-        dashboards = get_permitted_dashboard(user=user)
-    if dashboard not in dashboards.keys():
-        raise frappe.PermissionError
-    cache_key = dashboard if not meta else "{}_meta".format(dashboard)
-    if frappe.cache().hget('dashboard', cache_key):
-        return frappe.cache().hget('dashboard', cache_key)
-    doc = frappe.get_doc("Renovation Dashboard", dashboard)
-    if meta:
-        data = doc.get_chart_meta(**kwargs)
-    else:
-        data = doc.ready_chart_data(**kwargs)
-    frappe.cache().hset('dashboard', cache_key, data)
-    return data
-
-
-def get_permitted_dashboard(parent="Renovation Dashboard", user=None):
-    if not user: user = frappe.session.user
-    if frappe.cache().hget('dashboard_list', user):
-        return frappe.cache().hget('dashboard_list', user)
     roles = frappe.get_roles(user)
-    has_role = {}
-    column = get_column(parent)
+    if "name" not in fields:
+        fields.insert(0, "name")
 
-    standard_roles = frappe.db.sql("""
+    if not condition:
+        condition = ""
+
+    if order_by:
+        order_by = "ORDER BY {}".format(order_by)
+
+    result = []
+    column = ", ".join(["`tab{}`.{}".format(doctype, col) for col in fields])
+    result.extend(
+        frappe.db.sql("""select distinct
+              {column}
+            FROM `tab{doctype}`, `tabHas Role`
+            WHERE
+                `tabHas Role`.role in ('{roles}')
+                and `tabHas Role`.parent = `tab{doctype}`.name
+                and `tabHas Role`.parenttype = '{doctype}'
+                {condition}
+                {order_by}
+        """.format(doctype=doctype, column=column, roles="', '".join(roles), condition=condition, order_by=order_by), as_dict=1)
+    )
+
+    if include_if_no_role:
+        result.extend(
+            frappe.db.sql("""
         select distinct
-            `tab{parent}`.name,
-            `tab{parent}`.modified,
             {column}
-        from `tabHas Role`, `tab{parent}`
-        where
-            `tabHas Role`.role in ('{roles}')
-            and `tabHas Role`.parent = `tab{parent}`.name
-            {condition}
-        """.format(parent=parent, column=column, roles = "', '".join(roles),
-            field=parent.lower(), condition="and `tab{}`.enable=1".format(parent)), as_dict=True)
-
-    for p in standard_roles:
-        if p.name not in has_role:
-            has_role[p.name] = {"modified":p.modified, "title": p.title}
-
-    doctype_with_no_roles = frappe.db.sql("""
-        select
-            `tab{parent}`.name, `tab{parent}`.modified, {column}
-        from `tab{parent}`
+        from `tab{doctype}`
         where
             (select count(*) from `tabHas Role`
-            where `tabHas Role`.parent=`tab{parent}`.name) = 0
-    """.format(parent=parent, column=column), as_dict=1)
+            where `tabHas Role`.parent=`tab{doctype}`.name) = 0
+            {condition}
+            {order_by}
+    """.format(doctype=doctype, column=column, condition=condition, order_by=order_by), as_dict=1)
+        )
 
-    for p in doctype_with_no_roles:
-        if p.name not in has_role:
-            has_role[p.name] = {"modified": p.modified, "title": p.title}
+    return result
 
-    frappe.cache().hset('dashboard_list', user, has_role)
-    return has_role
+"""
+called from hooks.clear_cache
+"""
+def clear_dashboard_cache():
+    clear_layout_cache()
 
 
-def get_column(doctype):
-    column = "`tab{}`.title as title".format(doctype)
-    if doctype == "Renovation Dashboard":
-        column = "`tab{0}`.name as name, `tab{0}`.title as title".format(doctype)
-
-    return column
+def clear_layout_cache(layout=None):
+    for user in frappe.cache().hkeys("user_dashboard_layout"):
+        frappe.cache().hdel("user_dashboard_layout", user)
+    if layout:
+      frappe.cache().hdel("dashboard_layout", layout)
 
 
 def clear_cache_on_doc_events(doc, method):
     if doc.doctype == "Renovation Dashboard":
-        frappe.cache().hdel('dashboard', "%s_meta"%doc.name)
+        frappe.cache().hdel('dashboard', "%s_meta" % doc.name)
+    elif doc.doctype == "Renovation Dashboard Layout":
+        clear_layout_cache(doc.name)
     else:
-        for dashboard in get_dashboards_for_clear_cahe(doc.doctype):
+        for dashboard in get_dashboards_for_clear_cache(doc.doctype):
             frappe.cache().hdel('dashboard', dashboard)
 
 
-def get_dashboards_for_clear_cahe(doctype):
+def get_dashboards_for_clear_cache(doctype):
     try:
         cache_key = '_{}_puge_cache'.format(doctype)
         if frappe.cache().hget('dashboard', cache_key):
             return frappe.cache().hget('dashboard', cache_key)
-        data = [x.parent for x in frappe.get_all('Renovation Purge Cache', {'link_doctype': doctype, 'parenttype': 'Renovation Dashboard'}, 'parent')]
+        data = [x.parent for x in frappe.get_all('Renovation Purge Cache', {
+                                                 'link_doctype': doctype, 'parenttype': 'Renovation Dashboard'}, 'parent')]
         frappe.cache().hset('dashboard', cache_key, data)
         return data
     except:

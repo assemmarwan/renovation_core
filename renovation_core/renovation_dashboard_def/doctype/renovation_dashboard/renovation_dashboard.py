@@ -33,10 +33,21 @@ def get_context(**kwargs):
 
 	def get_chart_meta(self, **kwargs):
 		m = {
+			"name": self.name,
 			"title": self.title,
+			"enabled": self.enable,
+			"is_standard": self.is_standard,
 			"subtitle": self.subtitle or "",
 			"type": self.type,
 			"exc_type": self.exc_type,
+			"params": [{
+				"param": p.param,
+				"label": p.label,
+				"reqd": p.reqd,
+				"options": p.options,
+				"type": p.type,
+				"default_value": p.default_value
+			} for p in self.params]
 		}
 		if self.exc_type == "cmd":
 			m['cmd'] = self.cmd
