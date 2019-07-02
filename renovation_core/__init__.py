@@ -5,9 +5,14 @@ import frappe.model.sync
 from .utils.sync import _get_doc_files, process
 import frappe.core.doctype.sms_settings.sms_settings
 from .utils.sms_setting import validate_receiver_nos
+from .renovation_dashboard_def.utils import clear_dashboard_cache
 
 
 __version__ = '0.6.5'
+
+import frappe.app
+from .app import init_request
+frappe.app.init_request.__code__ = init_request.__code__
 
 
 Meta.process = process
@@ -18,6 +23,7 @@ frappe.core.doctype.sms_settings.sms_settings.validate_receiver_nos = validate_r
 def clear_cache():
   from .utils.meta import clear_all_meta_cache
   clear_all_meta_cache()
+  clear_dashboard_cache()
 
 
 def on_login(login_manager):
@@ -31,7 +37,7 @@ def on_session_creation(login_manager):
   from .utils.auth import make_jwt
   if frappe.form_dict.get('use_jwt'):
     frappe.local.response['token'] = make_jwt(login_manager.user, frappe.flags.get('jwt_expire_on'))
-    frappe.local.response['sid'] = frappe.session.sid
+    frappe.flags.jwt_clear_cookies = True
 
 
 

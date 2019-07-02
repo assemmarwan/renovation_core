@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 import frappe
-from frappe.app import make_form_dict, get_site_name, NotFound, _site, _sites_path
+from frappe.app import make_form_dict, get_site_name, NotFound, _site, _sites_path, application
 
 
 def init_request(request):
