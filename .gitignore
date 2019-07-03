@@ -3,4 +3,7 @@
 *.egg-info
 *.swp
 tags
+
+node_modules
+
 renovation_core/docs/current
