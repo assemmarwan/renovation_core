@@ -1,5 +1,5 @@
 from frappe import throw, _, msgprint
-import frappe
+import frappe, re
 from six import string_types
 from frappe.core.doctype.sms_settings.sms_settings import get_headers, create_sms_log, send_request
 
@@ -45,7 +45,7 @@ def send_via_gateway(arg):
 	ss = frappe.get_doc('SMS Settings', 'SMS Settings')
 	headers = get_headers(ss)
 
-	args = {ss.message_parameter: arg.get('message')}
+	args = {ss.message_parameter: re.sub(r'\s+', ' ', safe_decode(arg.get('message')))}
 	for d in ss.get("parameters"):
 		if not d.header:
 			args[d.parameter] = d.value
@@ -53,14 +53,24 @@ def send_via_gateway(arg):
 	success_list = []
 	for d in arg.get('receiver_list'):
 		args[ss.receiver_parameter] = d
-		status = send_request(ss.sms_gateway_url, args, headers, ss.use_post)
-
-		if 200 <= status < 300:
-			success_list.append(d)
+	url = ss.sms_gateway_url
+	if "%(" in url:
+		url = ss.sms_gateway_url % args
+	status = send_request(url, {} if "%(" in ss.sms_gateway_url else args, headers, ss.use_post)
+	if 200 <= status < 300:
+		success_list.append(d)
 
 	if len(success_list) > 0:
 		args.update(arg)
-		create_sms_log(args, success_list)
+		if frappe.db.exists("DocType", "SMS Log"):
+			create_sms_log(args, success_list)
 		if arg.get('success_msg'):
 			frappe.msgprint(_("SMS sent to following numbers: {0}").format("\n" + "\n".join(success_list)))
 	return success_list
+
+def safe_decode(string, encoding = 'utf-8'):
+	try:
+		string = string.decode(encoding)
+	except Exception:
+		pass
+	return string
