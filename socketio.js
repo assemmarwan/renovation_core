@@ -364,7 +364,17 @@ function get_url(socket, path) {
 	if (!path) {
 		path = '';
 	}
-	return socket.request.headers.origin + path;
+	// [renovation_core]
+	// Originally this was request.header.origin
+	// Since we do cross domain requests, Host is the way to go
+	// return socket.request.headers.host + path;
+	if (get_hostname(socket.request.headers.origin) === get_hostname(socket.request.headers.host)) {
+		return socket.request.headers.origin + path;
+	} else {
+		// fetch http scheme from origin and apply on host
+		const https = (socket.request.headers.origin || "").indexOf("https") > -1;
+		return `http${https ? "s" : ""}://${socket.request.headers.host}${path}`
+	}
 }
 
 function can_subscribe_doc(args) {
