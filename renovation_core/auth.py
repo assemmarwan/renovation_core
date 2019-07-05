@@ -51,8 +51,10 @@ class HTTPRequestExtend(HTTPRequest):
 			token = token_header[-1]
 			frappe.flags.jwt = token
 			token_info = jwt.decode(token, frappe.utils.password.get_encryption_key())
-			if token_info.get('ip') != frappe.local.request_ip:
-				frappe.throw(frappe._("Invalide IP", frappe.AuthenticationError))
+
+			# Not checking by IP since it could change on network change (Wifi -> Mobile Network)
+			# if token_info.get('ip') != frappe.local.request_ip:
+			# 	frappe.throw(frappe._("Invalide IP", frappe.AuthenticationError))
 
 			# werkzueg cookies structure is immutable
 			frappe.request.cookies = frappe._dict(frappe.request.cookies)
