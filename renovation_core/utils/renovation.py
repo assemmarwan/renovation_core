@@ -42,7 +42,7 @@ def get_data(parent, user=None, child_name=None):
 			or_coditions += "or (p_type='Role' and (p_name is null or p_name in ('{}')))".format("', '".join(roles))
 		conditions += ' and ({})'.format(or_coditions)
 	
-	data = frappe.db.sql("""select renovation_sidebar_name as title, tooltip, is_group, type,
+	data = frappe.db.sql("""select renovation_sidebar_name as title, title_ar, subtitle, subtitle_ar, tooltip, is_group, type,
 	if (STRCMP(type, "Link")=0, link, target) as target, rs.name, parent_renovation_sidebar as parent,
 	concat(sidebar_group) as include_from from `tabRenovation Sidebar` rs
 	left join `tabRenovation Sidebar Child` rsc on rs.name = rsc.parent
