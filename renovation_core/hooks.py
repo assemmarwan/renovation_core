@@ -10,7 +10,6 @@ app_color = "green"
 app_email = "admin@leam.ae"
 app_license = "MIT"
 
-clear_cache = "renovation_core.clear_cache"
 on_login = "renovation_core.on_login"
 on_logout = "renovation_core.on_logout"
 on_session_creation = "renovation_core.on_session_creation"
@@ -28,10 +27,6 @@ fixtures = [
         "filters": [["app_name", "=", "renovation_core"]]
     },
     {
-        "dt": "Renovation Script",
-        "filters": [["name", "IN", ["Data Import", "Data Export", "Broadcast Message RScript"]]]
-    },
-    {
         "dt": "Email Template",
         "filters": [["name", "IN", ["Default Email OTP Template"]]]
     },
@@ -45,10 +40,6 @@ jenv = {
     "filters": [
         "regex_replace:renovation_core.utils.jinja.regex_replace"
     ]
-}
-
-has_permission = {
-    "Renovation Sidebar": "renovation_core.utils.renovation.has_sidebar_permission"
 }
 
 # include js, css files in header of desk.html
@@ -125,20 +116,8 @@ doc_events = {
             "renovation_core.utils.renovation.clear_user_sidebar_cache"
         ]
     },
-    "Renovation Script": {
-        "on_change": "renovation_core.utils.meta.on_renovation_script_change"
-    },
     "System Settings": {
         "on_change": "renovation_core.doc_events.system_settings.on_change"
-    },
-    "Renovation Sidebar": {
-        "on_change": "renovation_core.utils.renovation.clear_sidebar_cache"
-    },
-    "*": {
-        "on_update": "renovation_core.renovation_dashboard_def.utils.clear_cache_on_doc_events",
-        "on_cancel": "renovation_core.renovation_dashboard_def.utils.clear_cache_on_doc_events",
-        "on_trash": "renovation_core.renovation_dashboard_def.utils.clear_cache_on_doc_events",
-        "on_update_after_submit": "renovation_core.renovation_dashboard_def.utils.clear_cache_on_doc_events"
     }
 }
 

@@ -7,7 +7,6 @@ from frappe.email.doctype.notification.notification import Notification
 from frappe.model.meta import Meta
 from frappe.utils import cint
 
-from .renovation_dashboard_def.utils import clear_dashboard_cache
 from .utils.notification import send_notification
 from .utils.sms_setting import validate_receiver_nos
 from .utils.sync import _get_doc_files, process
@@ -23,19 +22,7 @@ frappe.core.doctype.sms_settings.sms_settings.validate_receiver_nos = validate_r
 Notification.send = send_notification
 
 
-def clear_cache():
-  from .utils.meta import clear_all_meta_cache
-  clear_all_meta_cache()
-
-  from .utils.renovation import clear_cache
-  clear_cache()
-
-  clear_dashboard_cache()
-
-
 def on_login(login_manager):
-  import frappe.permissions
-
   set_can_use_quick_login_pin(user=login_manager.user, can_use=True)
   append_user_info_to_response(login_manager.user)
 
